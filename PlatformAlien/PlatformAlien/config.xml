@@ -1,0 +1,42 @@
+<!-- Config file for the engine -->
+
+<config>
+  <engine>
+    <title>My platformer game</title>
+    <maxFrameDuration value="16"/>
+  </engine>
+
+  <render>
+    <vsync value="false"/>
+  </render>
+
+  <window>
+    <resolution width="1280" height="720" scale="1"/>
+    <fullscreen value="false"/>
+    <borderless value="false"/>
+    <resizable value="false"/>
+    <fullscreen_window value="false"/>
+  </window>
+
+  <scene>
+    <map path="Assets/Maps/" name="MapTemplate.tmx"/>
+    <entities>
+      <player x="100" y="0" w="32" h ="32" texture="Assets/Textures/player/Idle.png">
+        <animations>
+          <idle loop="true" speed ="0.5">
+            <frame x="0" y="0" w="32" h="32"/>
+            <frame x="32" y="0" w="32" h="32"/>
+            <frame x="64" y="0" w="32" h="32"/>
+            <frame x="96" y="0" w="32" h="32"/>
+            <frame x="128" y="0" w="32" h="32"/>
+            <frame x="160" y="0" w="32" h="32"/>
+            <frame x="192" y="0" w="32" h="32"/>
+            <frame x="224" y="0" w="32" h="32"/>
+            <frame x="256" y="0" w="32" h="32"/>
+          </idle>
+        </animations>
+      </player>
+    </entities>
+  </scene>
+	
+</config>

@@ -32,12 +32,16 @@ public:
 		this->parameters = parameters;
 	}
 
+	SDL_RendererFlip hflip = SDL_FLIP_NONE;
+
 public:
 
 	//Declare player parameters
 	float speed = 5.0f;
 	SDL_Texture* texture = NULL;
 	int texW, texH;
+	bool flipSprite = false;
+
 
 	//Audio fx
 	int pickCoinFxId;
@@ -46,8 +50,17 @@ public:
 	PhysBody* pbody;
 	float jumpForce = 2.5f; // The force to apply when jumping
 	bool isJumping = false; // Flag to check if the player is currently jumping
+	bool isFalling = false;
+	bool isRunning = false; //Flag to check if the player is currently running
+	bool isHit = false;
+	bool isDead = false;
 
 	pugi::xml_node parameters;
 	Animation* currentAnimation = nullptr;
 	Animation idle;
+	Animation move;
+	Animation jump;
+	Animation fall;
+	Animation hit;
+	Animation die;
 };

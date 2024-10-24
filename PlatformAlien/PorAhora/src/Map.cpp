@@ -180,17 +180,39 @@ bool Map::Load(std::string path, std::string fileName)
             mapData.layers.push_back(mapLayer);
         }
 
-        // L08 TODO 3: Create colliders
-        // L08 TODO 7: Assign collider type
-        // Later you can create a function here to load and create the colliders from the map
-        PhysBody* c1 = Engine::GetInstance().physics.get()->CreateRectangle(224 + 128, 544 + 32, 256, 64, STATIC);
+        float x = 0.0f;
+        float y = 0.0f;
+        float width = 0.0f;
+        float height = 0.0f;
+        for (pugi::xml_node layerNode = mapFileXML.child("map").child("objectgroup"); layerNode != NULL; layerNode = layerNode.next_sibling("objectgroup")) {
+            for (pugi::xml_node tileNode = layerNode.child("object"); tileNode != NULL; tileNode = tileNode.next_sibling("object")) {
+
+
+                // Asigna los valores correctos desde el XML
+                x = tileNode.attribute("x").as_float();
+                y = tileNode.attribute("y").as_float();
+                width = tileNode.attribute("width").as_float();
+                height = tileNode.attribute("height").as_float();
+
+                // Debugging para verificar los valores
+                std::cout << "x: " << x << ", y: " << y << ", width: " << width << ", height: " << height << std::endl;
+
+                // Dibujar rectángulo con las coordenadas y dimensiones obtenidas
+                PhysBody* rect = Engine::GetInstance().physics.get()->CreateRectangle(x + width / 2, y + height / 2, width, height, STATIC);
+                rect->ctype = ColliderType::PLATFORM;
+
+            }
+        }
+        /*
+        PhysBody* c1 = Engine::GetInstance().physics.get()->CreateRectangle(224 + 128, 544 + 32, 2560, 32, STATIC);
         c1->ctype = ColliderType::PLATFORM;
 
-        PhysBody* c2 = Engine::GetInstance().physics.get()->CreateRectangle(352 + 64, 384 + 32, 128, 64, STATIC);
+        PhysBody* c2 = Engine::GetInstance().physics.get()->CreateRectangle(352 + 64, 384 + 32, 128, 32, STATIC);
         c2->ctype = ColliderType::PLATFORM;
 
-        PhysBody* c3 = Engine::GetInstance().physics.get()->CreateRectangle(256, 704 + 32, 576, 64, STATIC);
+        PhysBody* c3 = Engine::GetInstance().physics.get()->CreateRectangle(256, 704 + 32, 576, 32, STATIC);
         c3->ctype = ColliderType::PLATFORM;
+        */
 
         ret = true;
 

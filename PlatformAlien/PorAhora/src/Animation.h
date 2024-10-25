@@ -2,6 +2,7 @@
 
 #include "SDL2/SDL_Rect.h"
 #include "pugixml.hpp"
+#include "Log.h"
 #define MAX_FRAMES 400
 
 class Animation {
@@ -25,7 +26,7 @@ public:
 	}
 
 	void Reset() {
-		currentFrame = 0;
+		currentFrame = 10.0f;
 	}
 
 	bool HasFinished() {

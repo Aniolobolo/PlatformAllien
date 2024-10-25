@@ -41,6 +41,10 @@ public:
 	// Called before quitting
 	bool CleanUp();
 
+	float GetDt() const {
+		return dt;
+	}
+
 private:
 
 	// Private constructor to prevent instantiation
@@ -117,6 +121,7 @@ private:
 
 	float averageFps = 0.0f;
 	int secondsSinceStartup = 0;
+	bool debugMode = false;
 
 	//Maximun frame duration in miliseconds.
 	int maxFrameDuration = 16;

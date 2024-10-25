@@ -125,6 +125,17 @@ bool Engine::Start() {
 // Called each loop iteration
 bool Engine::Update() {
 
+    if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F3) == KEY_DOWN) {
+        debugMode = !debugMode;
+    }
+
+    if (debugMode) {
+        maxFrameDuration = 32;
+    }
+    else {
+        maxFrameDuration = 16;
+    }
+
     bool ret = true;
     PrepareUpdate();
 

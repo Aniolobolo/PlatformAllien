@@ -57,7 +57,7 @@ bool Scene::PreUpdate()
 bool Scene::Update(float dt)
 {
 	//L03 TODO 3: Make the camera movement independent of framerate
-	float camSpeed = 1;
+	/*float camSpeed = 1;
 
 	if(Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_UP) == KEY_REPEAT)
 		Engine::GetInstance().render.get()->camera.y -= ceil(camSpeed * dt);
@@ -69,7 +69,8 @@ bool Scene::Update(float dt)
 		Engine::GetInstance().render.get()->camera.x -= ceil(camSpeed * dt);
 
 	if(Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_RIGHT) == KEY_REPEAT)
-		Engine::GetInstance().render.get()->camera.x += ceil(camSpeed * dt);
+		Engine::GetInstance().render.get()->camera.x += ceil(camSpeed * dt);*/
+	Engine::GetInstance().render.get()->camera.x = 500 - player->position.getX();
 
 	return true;
 }

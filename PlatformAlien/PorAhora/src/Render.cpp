@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "Input.h"
 #include "Window.h"
 #include "Render.h"
 #include "Log.h"
@@ -28,8 +29,7 @@ bool Render::Awake()
 
 	//L05 TODO 5 - Load the configuration of the Render module
 	if (configParameters.child("vsync").attribute("value").as_bool() == true) {
-		flags |= SDL_RENDERER_PRESENTVSYNC;
-		LOG("Using vsync");
+		usingVsync = true;
 	}
 	int scale = Engine::GetInstance().window.get()->GetScale();
 
@@ -70,6 +70,15 @@ bool Render::PreUpdate()
 
 bool Render::Update(float dt)
 {
+	Uint32 flags = SDL_RENDERER_ACCELERATED;
+	
+	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F5) == KEY_DOWN) {
+		usingVsync = !usingVsync;
+	}
+	
+	if (usingVsync) {
+		flags |= SDL_RENDERER_PRESENTVSYNC;
+	}
 	return true;
 }
 

@@ -14,7 +14,7 @@ Physics::Physics() : Module()
 {
 	// Initialise all the internal class variables, at least to NULL pointer
 	world = NULL;
-	debug = true;
+	debug = false;
 }
 
 // Destructor
@@ -74,6 +74,8 @@ PhysBody* Physics::CreateRectangle(int x, int y, int width, int height, bodyType
 	if (type == KINEMATIC) body.type = b2_kinematicBody;
 
 	body.position.Set(PIXEL_TO_METERS(x), PIXEL_TO_METERS(y));
+
+	body.fixedRotation = true;
 
 	b2Body* b = world->CreateBody(&body);
 	b2PolygonShape box;

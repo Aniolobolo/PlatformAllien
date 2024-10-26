@@ -47,6 +47,7 @@ public:
 
 	//Audio fx
 	int pickCoinFxId;
+	int dieFxId;
 
 	// L08 TODO 5: Add physics to the player - declare a Physics body
 	PhysBody* pbody;
@@ -56,6 +57,7 @@ public:
 	bool isRunning = false; //Flag to check if the player is currently running
 	bool isHit = false;
 	bool isDead = false;
+	bool godMode = false;
 
 	pugi::xml_node parameters;
 	Animation* currentAnimation = nullptr;

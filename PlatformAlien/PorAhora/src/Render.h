@@ -40,7 +40,7 @@ public:
 	void SetBackgroundColor(SDL_Color color);
 
 public:
-
+	bool usingVsync;
 	SDL_Renderer* renderer;
 	SDL_Rect camera;
 	SDL_Rect viewport;

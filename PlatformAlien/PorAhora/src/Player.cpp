@@ -53,7 +53,8 @@ bool Player::Start() {
 	pbody->ctype = ColliderType::PLAYER;
 
 	//initialize audio effect
-	pickCoinFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/importantmessage.ogg");
+	pickCoinFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/coin.ogg");
+	dieFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/death.ogg");
 
 	return true;
 }
@@ -99,10 +100,18 @@ bool Player::Update(float dt)
 
 		}
 
+		float verticalVelocity = pbody->body->GetLinearVelocity().y;
 		//Jump
 		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_SPACE) == KEY_DOWN && isJumping == false) {
 			// Apply an initial upward force
 			pbody->body->ApplyLinearImpulseToCenter(b2Vec2(0, -jumpForce), true);
+			isJumping = true;
+			isFalling = false;
+		}
+
+		if (godMode && Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_SPACE) == KEY_REPEAT) {
+			// Apply an initial upward force
+			pbody->body->ApplyLinearImpulseToCenter(b2Vec2(0, -0.15), true);
 			isJumping = true;
 			isFalling = false;
 		}
@@ -129,8 +138,6 @@ bool Player::Update(float dt)
 		// If the player is jumpling, we don't want to apply gravity, we use the current velocity prduced by the jump
 		if (isJumping == true)
 		{
-			float verticalVelocity = pbody->body->GetLinearVelocity().y;
-
 			if (verticalVelocity > 0) {
 				currentAnimation = &fall;
 				isFalling = true;
@@ -148,12 +155,33 @@ bool Player::Update(float dt)
 		currentAnimation == &die;
 		if (currentAnimation->HasFinished()) {
 			die.Reset();
-			/*ResetPlayerPosition();*/
+
+			ResetPlayerPosition();
 			isDead = false;
+			
 		}
+		
 	}
 
-	
+	//godmode
+	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F2) == KEY_DOWN) {
+		godMode = !godMode;
+		if (godMode) {
+			LOG("God mode on");
+		}
+		else {
+			LOG("God mode off");
+		}
+		
+	}
+
+	//die
+	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F3) == KEY_DOWN) {
+		Engine::GetInstance().audio.get()->PlayFx(dieFxId);
+		isDead = true;
+		currentAnimation = &die;
+
+	}
 
 	
 	// Apply the velocity to the player
@@ -191,10 +219,17 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 		Engine::GetInstance().physics.get()->DeletePhysBody(physB); // Deletes the body of the item from the physics world
 		break;
 	case ColliderType::HAZARD:
+		Engine::GetInstance().audio.get()->PlayFx(dieFxId);
 		LOG("Collision HAZARD");
-		Engine::GetInstance().audio.get()->PlayFx(pickCoinFxId);
-		isDead = true;
-		currentAnimation = &die;
+		if (!godMode) {
+			
+			isDead = true;
+			currentAnimation = &die;
+		}
+		else {
+			isJumping = false;
+			isFalling = false;
+		}
 		break;
 	case ColliderType::UNKNOWN:
 		LOG("Collision UNKNOWN");

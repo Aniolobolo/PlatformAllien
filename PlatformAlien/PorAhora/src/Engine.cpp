@@ -125,7 +125,7 @@ bool Engine::Start() {
 // Called each loop iteration
 bool Engine::Update() {
 
-    if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F3) == KEY_DOWN) {
+    if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F4) == KEY_DOWN) {
         debugMode = !debugMode;
     }
 

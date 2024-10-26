@@ -14,7 +14,7 @@ public:
 	// Allows the animation to keep going back and forth
 	bool pingpong = false;
 	int loopCount = 0;
-
+	bool hasReseted;
 	float currentFrame = 0.0f;
 	int totalFrames = 0;
 	int pingpongDirection = 1;
@@ -26,7 +26,10 @@ public:
 	}
 
 	void Reset() {
-		currentFrame = 10.0f;
+		currentFrame = 0;
+		loopCount = 0;
+		pingpongDirection = 1;
+		hasReseted = true;
 	}
 
 	bool HasFinished() {
@@ -34,26 +37,33 @@ public:
 	}
 
 	void Update() {
-		currentFrame += speed;
-		if (currentFrame >= totalFrames) {
-			currentFrame = (loop || pingpong) ? 0.0f : totalFrames - 1;
-			++loopCount;
-
-			if (pingpong)
+		currentFrame += speed * pingpongDirection;
+		if (currentFrame >= totalFrames || currentFrame < 0) {
+			// Si la animación ha alcanzado el final, ajusta `currentFrame`
+			if (pingpong) {
 				pingpongDirection = -pingpongDirection;
+				currentFrame += speed * pingpongDirection;
+			}
+			else {
+				currentFrame = loop ? 0.0f : totalFrames - 1;
+				++loopCount;
+			}
 		}
 	}
 
 	const SDL_Rect& GetCurrentFrame() const {
 		int actualFrame = static_cast<int>(currentFrame);
 
-		if (pingpongDirection == -1) actualFrame = totalFrames - static_cast<int>(currentFrame);
+		if (pingpong && pingpongDirection == -1) {
+			actualFrame = totalFrames - 1 - actualFrame;
+		}
 
 		return frames[actualFrame];
 	}
 
 	void LoadAnimations(pugi::xml_node animationNode)
 	{
+		hasReseted = false;
 		speed = animationNode.attribute("speed").as_float();
 		loop = animationNode.attribute("loop").as_bool();
 

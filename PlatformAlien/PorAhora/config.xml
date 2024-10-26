@@ -2,7 +2,7 @@
 
 <config>
   <engine>
-    <title>My platformer game</title>
+    <title>Alien Ailment</title>
     <maxFrameDuration value="16"/>
   </engine>
 
@@ -21,7 +21,7 @@
   <scene>
     <map path="Assets/Maps/" name="Nivel1.tmx"/>
     <entities>
-      <player x="100" y="600" w="64" h ="64" texture="Assets/Textures/player/PlayerAnimations.png">
+      <player x="100" y="655" w="64" h ="64" texture="Assets/Textures/player/PlayerAnimations.png">
         <animations>
           <idle loop="true" speed ="0.3">
             <frame x="0" y="0" w="64" h="64"/>

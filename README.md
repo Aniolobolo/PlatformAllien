@@ -1,4 +1,4 @@
-Platform game set in outer space where we put ourselves in the shoes of Maxwell Wellington Q, a space explorer with the mission of curing the rimbolings of a deadly disease, to do this we must collect the cure and avoid the threats of the planet Yvolfi-32 .
+Platform game set in outer space where we play as Maxwell Wellington Q, a space explorer with the mission of curing the rimbolings of a deadly disease, to do this we must collect the cure and avoid the threats of the planet Yvolfi-32 .
 
 Controls:
 

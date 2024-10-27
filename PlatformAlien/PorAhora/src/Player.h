@@ -12,7 +12,7 @@ class Player : public Entity
 public:
 
 	Player();
-	
+
 	virtual ~Player();
 
 	bool Awake();
@@ -39,7 +39,7 @@ public:
 public:
 
 	//Declare player parameters
-	float speed = 5.0f;
+	float speed = 0.3f;
 	SDL_Texture* texture = NULL;
 	int texW, texH;
 	bool flipSprite = false;
@@ -48,10 +48,11 @@ public:
 	//Audio fx
 	int pickCoinFxId;
 	int dieFxId;
+	int fallFxId;
 
 	// L08 TODO 5: Add physics to the player - declare a Physics body
 	PhysBody* pbody;
-	float jumpForce = 3.0f; // The force to apply when jumping
+	float jumpForce = 2.5f; // The force to apply when jumping
 	bool isJumping = false; // Flag to check if the player is currently jumping
 	bool isFalling = false;
 	bool isRunning = false; //Flag to check if the player is currently running

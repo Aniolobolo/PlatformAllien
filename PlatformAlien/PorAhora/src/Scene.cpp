@@ -45,7 +45,9 @@ bool Scene::Start()
 	Engine::GetInstance().map->Load(configParameters.child("map").attribute("path").as_string(), configParameters.child("map").attribute("name").as_string());
 	controls = Engine::GetInstance().textures->Load("Assets/Textures/Help.png");
 
-	bgMusic = Engine::GetInstance().audio->PlayMusic("Assets/Audio/Music/bgmusic.ogg", 0);
+	bgMusic = Engine::GetInstance().audio->PlayMusic("Assets/Audio/Music/music.ogg", 0);
+	int musicVolume = 40;
+	Mix_VolumeMusic(musicVolume);
 
 	return true;
 }

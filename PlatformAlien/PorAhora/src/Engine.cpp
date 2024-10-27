@@ -17,7 +17,7 @@
 // Constructor
 Engine::Engine() {
 
-	LOG("Constructor Engine::Engine");
+    LOG("Constructor Engine::Engine");
 
     //Measure the amount of ms that takes to execute the App constructor and LOG the result
     Timer timer = Timer();
@@ -27,7 +27,7 @@ Engine::Engine() {
     frames = 0;
 
     // L4: TODO 1: Add the EntityManager Module to the Engine
-    
+
     // Modules
     window = std::make_shared<Window>();
     input = std::make_shared<Input>();
@@ -64,7 +64,7 @@ Engine& Engine::GetInstance() {
     return instance;
 }
 
-void Engine::AddModule(std::shared_ptr<Module> module){
+void Engine::AddModule(std::shared_ptr<Module> module) {
     module->Init();
     moduleList.push_back(module);
 }
@@ -89,10 +89,10 @@ bool Engine::Awake() {
     bool result = true;
     for (const auto& module : moduleList) {
         module.get()->LoadParameters(configFile.child("config").child(module.get()->name.c_str()));
-        result =  module.get()->Awake();
+        result = module.get()->Awake();
         if (!result) {
-			break;
-		}
+            break;
+        }
     }
 
     LOG("Timer App Awake(): %f", timer.ReadMSec());
@@ -221,11 +221,12 @@ void Engine::FinishUpdate()
     // Shows the time measurements in the window title
     // check sprintf formats here https://cplusplus.com/reference/cstdio/printf/
     std::stringstream ss;
-    ss << gameTitle << ": Av.FPS: " << std::fixed << std::setprecision(2) << averageFps
-        << " Last sec frames: " << framesPerSecond
+    ss << gameTitle << ": FPS: " << framesPerSecond
+        << " Avg. FPS: " << std::fixed << std::setprecision(2) << averageFps
         << " Last dt: " << std::fixed << std::setprecision(3) << dt
         << " Time since startup: " << secondsSinceStartup
-        << " Frame Count: " << frameCount;
+        << " Frame Count: " << frameCount
+        << " Vsync: " << configFile.child("vsync").attribute("value").as_bool();
 
     std::string titleStr = ss.str();
 
@@ -299,5 +300,3 @@ bool Engine::LoadConfig()
 
     return ret;
 }
-
-

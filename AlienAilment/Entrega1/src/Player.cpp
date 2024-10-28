@@ -209,6 +209,8 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 		Engine::GetInstance().physics.get()->DeletePhysBody(physB); // Deletes the body of the item from the physics world
 		break;
 	case ColliderType::HAZARD:
+		isJumping = false;
+		isFalling = false;
 		if (!isDead && !godMode) {
 			isDead = true;
 			currentAnimation = &die;

@@ -225,8 +225,14 @@ void Engine::FinishUpdate()
         << " Avg. FPS: " << std::fixed << std::setprecision(2) << averageFps
         << " Last dt: " << std::fixed << std::setprecision(3) << dt
         << " Time since startup: " << secondsSinceStartup
-        << " Frame Count: " << frameCount
-        << " Vsync: " << configFile.child("vsync").attribute("value").as_bool();
+        << " Frame Count: " << frameCount;
+
+    if (configFile.child("vsync").attribute("value").as_bool() == true) {
+        ss << " VSYNC: ON";
+    }
+    else {
+        ss << " VSYNC: OFF";
+    }
 
     std::string titleStr = ss.str();
 

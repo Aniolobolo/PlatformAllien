@@ -39,7 +39,6 @@ public:
 	void Update() {
 		currentFrame += speed * pingpongDirection;
 		if (currentFrame >= totalFrames || currentFrame < 0) {
-			// Si la animación ha alcanzado el final, ajusta `currentFrame`
 			if (pingpong) {
 				pingpongDirection = -pingpongDirection;
 				currentFrame += speed * pingpongDirection;

@@ -34,6 +34,10 @@ public:
 		this->parameters = parameters;
 	}
 
+	void SetPosition(Vector2D pos);
+
+	Vector2D GetPosition();
+
 	SDL_RendererFlip hflip = SDL_FLIP_NONE;
 
 public:

@@ -5,6 +5,7 @@
 #include "Scene.h"
 #include "Log.h"
 #include "Item.h"
+#include "Enemy.h"
 
 EntityManager::EntityManager() : Module()
 {
@@ -22,7 +23,7 @@ bool EntityManager::Awake()
 	bool ret = true;
 
 	//Iterates over the entities and calls the Awake
-	for(const auto entity : entities)
+	for (const auto entity : entities)
 	{
 		if (entity->active == false) continue;
 		ret = entity->Awake();
@@ -34,10 +35,10 @@ bool EntityManager::Awake()
 
 bool EntityManager::Start() {
 
-	bool ret = true; 
+	bool ret = true;
 
 	//Iterates over the entities and calls Start
-	for(const auto entity : entities)
+	for (const auto entity : entities)
 	{
 		if (entity->active == false) continue;
 		ret = entity->Start();
@@ -51,7 +52,7 @@ bool EntityManager::CleanUp()
 {
 	bool ret = true;
 
-	for(const auto entity : entities)
+	for (const auto entity : entities)
 	{
 		if (entity->active == false) continue;
 		ret = entity->CleanUp();
@@ -64,7 +65,7 @@ bool EntityManager::CleanUp()
 
 Entity* EntityManager::CreateEntity(EntityType type)
 {
-	Entity* entity = nullptr; 
+	Entity* entity = nullptr;
 
 	//L04: TODO 3a: Instantiate entity according to the type and add the new entity to the list of Entities
 	switch (type)
@@ -74,6 +75,9 @@ Entity* EntityManager::CreateEntity(EntityType type)
 		break;
 	case EntityType::ITEM:
 		entity = new Item();
+		break;
+	case EntityType::ENEMY:
+		entity = new Enemy();
 		break;
 	default:
 		break;
@@ -99,13 +103,13 @@ void EntityManager::DestroyEntity(Entity* entity)
 
 void EntityManager::AddEntity(Entity* entity)
 {
-	if ( entity != nullptr) entities.push_back(entity);
+	if (entity != nullptr) entities.push_back(entity);
 }
 
 bool EntityManager::Update(float dt)
 {
 	bool ret = true;
-	for(const auto entity : entities)
+	for (const auto entity : entities)
 	{
 		if (entity->active == false) continue;
 		ret = entity->Update(dt);

@@ -2,6 +2,8 @@
 
 #include "Module.h"
 #include "Player.h"
+#include "Enemy.h"
+#include <vector>
 
 struct SDL_Texture;
 
@@ -32,6 +34,16 @@ public:
 	// Called before quitting
 	bool CleanUp();
 
+	// Return the player position
+	Vector2D GetPlayerPosition();
+
+public:
+	// Get tilePosDebug value
+	std::string GetTilePosDebug() {
+		return tilePosDebug;
+
+	}
+
 private:
 	SDL_Texture* img;
 	bool areControlsVisible = false;
@@ -39,4 +51,8 @@ private:
 	int bgMusic;
 	//L03: TODO 3b: Declare a Player attribute
 	Player* player;
+	SDL_Texture* mouseTileTex = nullptr;
+	std::string tilePosDebug = "[0,0]";
+	bool once = false;
+	std::vector<Enemy*> enemyList;
 };

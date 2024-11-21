@@ -21,7 +21,7 @@
   <scene>
     <map path="Assets/Maps/" name="Nivel1.tmx"/>
     <entities>
-      <player x="100" y="655" w="64" h ="64" texture="Assets/Textures/player/PlayerAnimations.png">
+      <player x="100" y="650" w="64" h ="64" texture="Assets/Textures/player/PlayerAnimations.png">
         <animations>
           <idle loop="true" speed ="0.3">
             <frame x="0" y="0" w="64" h="64"/>
@@ -86,7 +86,7 @@
 	  <enemies>
 		<enemy name="enemyGround" x="448" y="500" w="64" h="64" texture="Assets/Textures/enemies/EnemyGroundAnimations.png" gravity="true">
 			<animations>
-				<idle loop="true" speed ="0.3">
+				<idle loop="true" speed ="0.1">
 					<frame x="0" y="0" w="64" h="64"/>
 					<frame x="64" y="0" w="64" h="64"/>
 					<frame x="128" y="0" w="64" h="64"/>

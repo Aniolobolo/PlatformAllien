@@ -103,7 +103,7 @@ bool Player::Update(float dt)
 
 		float verticalVelocity = pbody->body->GetLinearVelocity().y;
 		//Jump
-		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_SPACE) == KEY_DOWN && isJumping == false) {
+		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_SPACE) == KEY_DOWN && isJumping == false && isFalling == false) {
 			// Apply an initial upward force
 			pbody->body->ApplyLinearImpulseToCenter(b2Vec2(0, -jumpForce), true);
 			isJumping = true;
@@ -112,7 +112,7 @@ bool Player::Update(float dt)
 
 		//fly using god mode
 		if (godMode && Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_SPACE) == KEY_REPEAT) {
-			pbody->body->ApplyLinearImpulseToCenter(b2Vec2(0, -0.15), true);
+			pbody->body->ApplyLinearImpulseToCenter(b2Vec2(0, -0.10), true);
 			isJumping = true;
 			isFalling = false;
 		}
@@ -142,6 +142,8 @@ bool Player::Update(float dt)
 
 			velocity.y = pbody->body->GetLinearVelocity().y;
 		}
+
+
 
 	}
 
@@ -195,13 +197,22 @@ bool Player::CleanUp()
 
 // L08 TODO 6: Define OnCollision function for the player. 
 void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
+	float verticalVelocity = pbody->body->GetLinearVelocity().y;
+
 	switch (physB->ctype)
 	{
 	case ColliderType::PLATFORM:
 		LOG("Collision PLATFORM");
 		//reset the jump flag when touching the ground
-		isJumping = false;
-		isFalling = false;
+		if (isFalling) {
+			isFalling = false;
+			isJumping = false;
+		}
+		
+		
+
+		
+
 		break;
 	case ColliderType::ITEM:
 		LOG("Collision ITEM");
@@ -209,8 +220,18 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 		Engine::GetInstance().physics.get()->DeletePhysBody(physB); // Deletes the body of the item from the physics world
 		break;
 	case ColliderType::HAZARD:
-		isJumping = false;
-		isFalling = false;
+		if (!isDead && !godMode) {
+			isDead = true;
+			currentAnimation = &die;
+			Engine::GetInstance().audio.get()->PlayFx(dieFxId);
+			LOG("Collision HAZARD");
+		}
+		else{
+			
+			isFalling = false;
+		}
+		break;
+	case ColliderType::ENEMY:
 		if (!isDead && !godMode) {
 			isDead = true;
 			currentAnimation = &die;
@@ -247,6 +268,9 @@ void Player::OnCollisionEnd(PhysBody* physA, PhysBody* physB)
 		break;
 	case ColliderType::HAZARD:
 		LOG("Collision HAZARD");
+		break;
+	case ColliderType::ENEMY:
+		LOG("Collision ENEMY");
 		break;
 	case ColliderType::VOID:
 		break;

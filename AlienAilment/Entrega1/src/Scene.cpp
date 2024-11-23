@@ -56,7 +56,7 @@ bool Scene::Start()
 	Engine::GetInstance().map->Load(configParameters.child("map").attribute("path").as_string(), configParameters.child("map").attribute("name").as_string());
 
 	// Texture to highligh mouse position 
-	mouseTileTex = Engine::GetInstance().textures.get()->Load("Assets/Maps/MapMetadata.png");
+	mouseTileTex = Engine::GetInstance().textures.get()->Load("Assets/Textures/goldCoin.png");
 
 	bgMusic = Engine::GetInstance().audio->PlayMusic("Assets/Audio/Music/music.ogg", 0);
 	int musicVolume = 40;
@@ -80,17 +80,6 @@ bool Scene::Update(float dt)
 		areControlsVisible = !areControlsVisible;
 	}
 	
-	return true;
-}
-
-// Called each loop iteration
-bool Scene::PostUpdate()
-{
-	bool ret = true;
-
-	if(Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_ESCAPE) == KEY_DOWN)
-		ret = false;
-
 	if (areControlsVisible && controls != nullptr) {
 		int width, height;
 		Engine::GetInstance().textures->GetSize(controls, width, height);
@@ -102,6 +91,49 @@ bool Scene::PostUpdate()
 
 		SDL_RenderCopy(Engine::GetInstance().render->renderer, controls, nullptr, &dstRect);
 	}
+
+
+	//Get mouse position and obtain the map coordinate
+	Vector2D mousePos = Engine::GetInstance().input.get()->GetMousePosition();
+	Vector2D mouseTile = Engine::GetInstance().map.get()->WorldToMap(mousePos.getX() - Engine::GetInstance().render.get()->camera.x,
+		mousePos.getY() - Engine::GetInstance().render.get()->camera.y);
+
+
+	//Render a texture where the mouse is over to highlight the tile, use the texture 'mouseTileTex'
+	Vector2D highlightTile = Engine::GetInstance().map.get()->MapToWorld(mouseTile.getX(), mouseTile.getY());
+	SDL_Rect rect = { 0,0,32,32 };
+	Engine::GetInstance().render.get()->DrawTexture(mouseTileTex,
+		highlightTile.getX(),
+		highlightTile.getY(),
+		&rect);
+
+	// saves the tile pos for debugging purposes
+	if (mouseTile.getX() >= 0 && mouseTile.getY() >= 0 || once) {
+		tilePosDebug = "[" + std::to_string((int)mouseTile.getX()) + "," + std::to_string((int)mouseTile.getY()) + "] ";
+		once = true;
+	}
+
+	//If mouse button is pressed modify enemy position
+	if (Engine::GetInstance().input.get()->GetMouseButtonDown(1) == KEY_DOWN) {
+		enemyList[0]->SetPosition(Vector2D(highlightTile.getX(), highlightTile.getY()));
+		enemyList[0]->ResetPath();
+	}
+
+	return true;
+}
+
+// Called each loop iteration
+bool Scene::PostUpdate()
+{
+	bool ret = true;
+
+	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_ESCAPE) == KEY_DOWN)
+		ret = false;
+	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F6) == KEY_DOWN)
+		LoadState();
+
+	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F5) == KEY_DOWN)
+		SaveState();
 
 	return ret;
 }
@@ -122,4 +154,57 @@ bool Scene::CleanUp()
 Vector2D Scene::GetPlayerPosition()
 {
 	return player->GetPosition();
+}
+
+// L15 TODO 1: Implement the Load function
+void Scene::LoadState() {
+
+	pugi::xml_document loadFile;
+	pugi::xml_parse_result result = loadFile.load_file("config.xml");
+
+	if (result == NULL)
+	{
+		LOG("Could not load file. Pugi error: %s", result.description());
+		return;
+	}
+
+	pugi::xml_node sceneNode = loadFile.child("config").child("scene");
+
+	//Read XML and restore information
+
+	//Player position
+	Vector2D playerPos = Vector2D(sceneNode.child("entities").child("player").attribute("x").as_int(),
+		sceneNode.child("entities").child("player").attribute("y").as_int());
+	player->SetPosition(playerPos);
+
+	//enemies
+	// ...
+
+}
+
+// L15 TODO 2: Implement the Save function
+void Scene::SaveState() {
+
+	pugi::xml_document loadFile;
+	pugi::xml_parse_result result = loadFile.load_file("config.xml");
+
+	if (result == NULL)
+	{
+		LOG("Could not load file. Pugi error: %s", result.description());
+		return;
+	}
+
+	pugi::xml_node sceneNode = loadFile.child("config").child("scene");
+
+	//Save info to XML 
+
+	//Player position
+	sceneNode.child("entities").child("player").attribute("x").set_value(player->GetPosition().getX());
+	sceneNode.child("entities").child("player").attribute("y").set_value(player->GetPosition().getY());
+
+	//enemies
+	// ...
+
+	//Saves the modifications to the XML 
+	loadFile.save_file("config.xml");
 }

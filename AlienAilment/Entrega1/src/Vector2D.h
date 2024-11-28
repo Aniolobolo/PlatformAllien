@@ -29,6 +29,12 @@ public:
     float distanceEuclidean(const Vector2D& other) const;
     float distanceSquared(const Vector2D& other) const;
 
+    // Devuelve la longitud de un vector
+    float Length() const;
+
+    // Normaliza el vector
+    void Normalize();
+
     // Output stream operator
     friend std::ostream& operator<<(std::ostream& os, const Vector2D& vec);
 

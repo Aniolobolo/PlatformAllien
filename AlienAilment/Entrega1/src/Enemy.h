@@ -35,6 +35,11 @@ public:
 public:
 
 private:
+	Vector2D lastEnemyTile;
+	Vector2D lastPlayerTile;
+	std::vector<Vector2D> pathTiles;  // Almacena la ruta de tiles
+	int currentPathIndex = 0;  // Índice actual en la ruta
+	float ENEMY_SPEED = 50.0f;
 
 	SDL_Texture* texture;
 	const char* texturePath;

@@ -80,3 +80,15 @@ float Vector2D::distanceEuclidean(const Vector2D& other) const {
 float Vector2D::distanceSquared(const Vector2D& other) const {
     return std::pow(x - other.x, 2) + std::pow(y - other.y, 2);
 }
+
+float Vector2D::Length() const {
+    return sqrt(x * x + y * y); 
+}
+
+void Vector2D::Normalize() {
+    float len = Length();
+    if (len != 0) {
+        x /= len;
+        y /= len;
+    }
+}

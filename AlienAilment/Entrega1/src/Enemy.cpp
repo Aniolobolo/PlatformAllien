@@ -53,6 +53,24 @@ bool Enemy::Start() {
 
 bool Enemy::Update(float dt)
 {
+	// Velocidad de movimiento en unidades de píxeles por segundo
+	float speed = 2.0f;
+
+	// Lógica para el movimiento de izquierda a derecha usando física
+	float direction = 1.0f; // Dirección de movimiento (1.0f para derecha, -1.0f para izquierda)
+
+	// Invertir la dirección cuando se llegue a los límites (puedes definir un límite según tu escenario)
+	if (position.getX() >= 500) {  // Límite derecho
+		direction = -1.0f;
+	}
+	if (position.getX() <= 100) {  // Límite izquierdo
+		direction = 1.0f;
+	}
+
+	// Aplicar una fuerza horizontal en la dirección correcta
+	b2Vec2 force = b2Vec2(direction * speed, 0);  // Fuerza en el eje X
+	pbody->body->ApplyForceToCenter(force, true);
+	
 	// Pathfinding testing inputs
 	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_R) == KEY_DOWN) {
 		Vector2D pos = GetPosition();
@@ -127,8 +145,8 @@ bool Enemy::CleanUp()
 }
 
 void Enemy::SetPosition(Vector2D pos) {
-	pos.setX(pos.getX() + texW / 2);
-	pos.setY(pos.getY() + texH / 2);
+	pos.setX(pos.getX() + texW / 4);
+	pos.setY(pos.getY() + texH / 4);
 	b2Vec2 bodyPos = b2Vec2(PIXEL_TO_METERS(pos.getX()), PIXEL_TO_METERS(pos.getY()));
 	pbody->body->SetTransform(bodyPos, 0);
 }

@@ -31,6 +31,10 @@ public:
 	Vector2D GetPosition();
 
 	void ResetPath();
+	void OnCollision(PhysBody* physA, PhysBody* physB);
+	void OnCollisionEnd(PhysBody* physA, PhysBody* physB);
+
+	bool isAlive = true;
 
 public:
 
@@ -40,6 +44,7 @@ private:
 	std::vector<Vector2D> pathTiles;  // Almacena la ruta de tiles
 	int currentPathIndex = 0;  // Índice actual en la ruta
 	float ENEMY_SPEED = 50.0f;
+	
 
 	SDL_Texture* texture;
 	const char* texturePath;

@@ -115,8 +115,11 @@ bool Scene::Update(float dt)
 
 	//If mouse button is pressed modify enemy position
 	if (Engine::GetInstance().input.get()->GetMouseButtonDown(1) == KEY_DOWN) {
-		enemyList[0]->SetPosition(Vector2D(highlightTile.getX(), highlightTile.getY()));
-		enemyList[0]->ResetPath();
+		if (enemyList[0]->isAlive) {
+			enemyList[0]->SetPosition(Vector2D(highlightTile.getX(), highlightTile.getY()));
+			enemyList[0]->ResetPath();
+		}
+		
 	}
 
 	return true;

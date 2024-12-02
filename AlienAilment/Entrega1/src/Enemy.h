@@ -33,8 +33,10 @@ public:
 	void ResetPath();
 	void OnCollision(PhysBody* physA, PhysBody* physB);
 	void OnCollisionEnd(PhysBody* physA, PhysBody* physB);
+	void MoveTowardsTargetTile(float dt);
 
 	bool isAlive = true;
+	int distCounter = 0;
 
 public:
 

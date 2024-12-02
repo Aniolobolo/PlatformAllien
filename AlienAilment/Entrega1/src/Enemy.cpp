@@ -25,28 +25,31 @@ bool Enemy::Awake() {
 
 bool Enemy::Start() {
 
-	//initilize textures
+	// Inicializar texturas
 	texture = Engine::GetInstance().textures.get()->Load(parameters.attribute("texture").as_string());
 	position.setX(parameters.attribute("x").as_int());
 	position.setY(parameters.attribute("y").as_int());
 	texW = parameters.attribute("w").as_int();
 	texH = parameters.attribute("h").as_int();
 
-	//Load animations
+	// Cargar animaciones
 	idle.LoadAnimations(parameters.child("animations").child("idle"));
 	currentAnimation = &idle;
 
-	//Add a physics to an item - initialize the physics body
+	// Agregar física al objeto - inicializar el cuerpo físico
 	pbody = Engine::GetInstance().physics.get()->CreateCircle((int)position.getX() + texH / 4, (int)position.getY() + texH / 4, texH / 4, bodyType::DYNAMIC);
 
-	//Assign collider type
+	// Asignar tipo de colisionador
 	pbody->ctype = ColliderType::ENEMY;
 	pbody->listener = this;
 
-	// Set the gravity of the body
+	// Configurar la gravedad del cuerpo
 	if (!parameters.attribute("gravity").as_bool()) pbody->body->SetGravityScale(0);
 
-	// Initialize pathfinding
+	// Establecer la velocidad inicial a cero para evitar movimiento no deseado
+	pbody->body->SetLinearVelocity(b2Vec2(0, 0));
+
+	// Inicializar pathfinding
 	pathfinding = new Pathfinding();
 	ResetPath();
 
@@ -55,93 +58,70 @@ bool Enemy::Start() {
 	return true;
 }
 
+void Enemy::MoveTowardsTargetTile(float dt)
+{
+	// Asegurarse de que hay suficientes tiles en el camino para calcular el movimiento
+	if (pathfinding->pathTiles.size() < 2) return;
+
+	// Paso 1: Verificar si el path tiene más de 20 tiles
+	if (pathfinding->pathTiles.size() > 20) {
+		// Detener el movimiento si el path tiene más de 20 tiles
+		pbody->body->SetLinearVelocity(b2Vec2(0, 0));
+		return;
+	}
+
+	// Obtener el penúltimo tile (el objetivo inmediato)
+	auto it = pathfinding->pathTiles.end();
+	Vector2D targetTile = *(--(--it)); // Penúltimo tile
+	Vector2D targetWorldPos = Engine::GetInstance().map.get()->MapToWorld(targetTile.getX(), targetTile.getY());
+
+	// Calcular la dirección hacia el penúltimo tile
+	Vector2D enemyPos = GetPosition();
+	Vector2D direction = targetWorldPos + Vector2D(16, 16) - enemyPos;
+
+	// Calcular distancia al objetivo
+	float distance = direction.Length();
+
+	// Normalizar la dirección para calcular la velocidad
+	Vector2D velocity(0, 0);
+	if (distance > 0.5f) { // Si la distancia es mayor a un umbral, moverse
+		direction.Normalize();
+		velocity = direction * 100.0f; // Ajustar la velocidad según necesidades
+	}
+
+	// Aplicar la velocidad al cuerpo físico del enemigo
+	b2Vec2 velocityVec = b2Vec2(PIXEL_TO_METERS(velocity.getX()), PIXEL_TO_METERS(velocity.getY()));
+	pbody->body->SetLinearVelocity(velocityVec);
+}
+
 bool Enemy::Update(float dt)
 {
-	// Velocidad de movimiento en unidades de píxeles por segundo
-	float speed = 2.0f;
+	// Paso 1: Recalcular el camino hacia el jugador
+	ResetPath(); // Restablecer el camino antes de calcular uno nuevo
 
-	// Lógica para el movimiento de izquierda a derecha usando física
-	float direction = 1.0f; // Dirección de movimiento (1.0f para derecha, -1.0f para izquierda)
-
-	// Invertir la dirección cuando se llegue a los límites (puedes definir un límite según tu escenario)
-	if (position.getX() >= 500) {  // Límite derecho
-		direction = -1.0f;
-	}
-	if (position.getX() <= 100) {  // Límite izquierdo
-		direction = 1.0f;
-	}
-
-	// Aplicar una fuerza horizontal en la dirección correcta
-	b2Vec2 force = b2Vec2(direction * speed, 0);  // Fuerza en el eje X
-	pbody->body->ApplyForceToCenter(force, true);
-	
-	// Pathfinding testing inputs
-	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_R) == KEY_DOWN) {
-		Vector2D pos = GetPosition();
-		Vector2D tilePos = Engine::GetInstance().map.get()->WorldToMap(pos.getX(), pos.getY());
-		pathfinding->ResetPath(tilePos);
-	}
-
-	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_J) == KEY_DOWN) {
-		pathfinding->PropagateBFS();
-	}
-
-	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_J) == KEY_REPEAT &&
-		Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT) {
-		pathfinding->PropagateBFS();
-	}
-
-	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_K) == KEY_DOWN) {
-		pathfinding->PropagateDijkstra();
-	}
-
-	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_K) == KEY_REPEAT &&
-		Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT) {
-		pathfinding->PropagateDijkstra();
-	}
-
-	// L13: TODO 3:	Add the key inputs to propagate the A* algorithm with different heuristics (Manhattan, Euclidean, Squared)
-
-	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_B) == KEY_DOWN) {
-		pathfinding->PropagateAStar(MANHATTAN);
-	}
-
-	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_B) == KEY_REPEAT &&
-		Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT) {
-		pathfinding->PropagateAStar(MANHATTAN);
-	}
-
-	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_N) == KEY_DOWN) {
-		pathfinding->PropagateAStar(EUCLIDEAN);
-	}
-
-	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_N) == KEY_REPEAT &&
-		Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT) {
-		pathfinding->PropagateAStar(EUCLIDEAN);
-	}
-
-	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_M) == KEY_DOWN) {
+	// Propagar A* hasta que se obtenga un camino válido
+	while (pathfinding->pathTiles.empty()) {
 		pathfinding->PropagateAStar(SQUARED);
 	}
 
-	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_M) == KEY_REPEAT &&
-		Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT) {
-		pathfinding->PropagateAStar(SQUARED);
-	}
+	// Paso 2: Dibujar el camino calculado para debug
+	pathfinding->DrawPath();
 
-	// L08 TODO 4: Add a physics to an item - update the position of the object from the physics.  
+	// Paso 3: Mover al enemigo hacia el penúltimo tile
+	MoveTowardsTargetTile(dt);
+
+	// Actualizar la posición física del enemigo basada en la simulación de física
 	b2Transform pbodyPos = pbody->body->GetTransform();
 	position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texH / 2);
 	position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH / 2);
 
+	// Dibujar al enemigo en la pantalla y actualizar su animación
 	Engine::GetInstance().render.get()->DrawTexture(texture, (int)position.getX(), (int)position.getY(), &currentAnimation->GetCurrentFrame());
 	currentAnimation->Update();
 
-	// Draw pathfinding 
-	pathfinding->DrawPath();
-
 	return true;
 }
+
 
 bool Enemy::CleanUp()
 {
@@ -173,8 +153,8 @@ void Enemy::OnCollision(PhysBody* physA, PhysBody* physB) {
 	{
 	case ColliderType::PLAYER:
 		LOG("Collided with player - DESTROY");
-		Engine::GetInstance().entityManager.get()->DestroyEntity(this);
-		isAlive = false;
+		/*Engine::GetInstance().entityManager.get()->DestroyEntity(this);
+		isAlive = false;*/
 		break;
 	}
 }

@@ -30,6 +30,7 @@ enum class ColliderType {
 	PLATFORM,
 	HAZARD,
 	VOID,
+	CHECKPOINT,
 	UNKNOWN
 	// ..
 };

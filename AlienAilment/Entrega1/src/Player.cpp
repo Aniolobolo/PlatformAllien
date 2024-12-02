@@ -61,9 +61,7 @@ bool Player::Start() {
 }
 
 void Player::ResetPlayerPosition() {
-	position.setX(parameters.attribute("x").as_int());
-	position.setY(parameters.attribute("y").as_int());
-	pbody->body->SetTransform(b2Vec2(PIXEL_TO_METERS(position.getX()), PIXEL_TO_METERS(position.getY())), 0);
+	pbody->body->SetTransform(b2Vec2(PIXEL_TO_METERS(parameters.attribute("x").as_int()), PIXEL_TO_METERS(parameters.attribute("y").as_int())), 0);
 
 	isJumping = false;
 	isFalling = false;
@@ -208,11 +206,6 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 			isFalling = false;
 			isJumping = false;
 		}
-		
-		
-
-		
-
 		break;
 	case ColliderType::ITEM:
 		LOG("Collision ITEM");
@@ -245,6 +238,14 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 			currentAnimation = &die;
 			Engine::GetInstance().audio.get()->PlayFx(fallFxId);
 			LOG("Collision VOID");
+		}
+		break;
+	case ColliderType::CHECKPOINT:
+		LOG("Collision Checkpoint");
+		//reset the jump flag when touching the ground
+		if (isFalling) {
+			isFalling = false;
+			isJumping = false;
 		}
 		break;
 	case ColliderType::UNKNOWN:

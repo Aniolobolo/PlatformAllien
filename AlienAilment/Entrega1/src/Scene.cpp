@@ -144,6 +144,12 @@ bool Scene::PostUpdate()
 
 	if (checkP->hasSounded) {
 		SaveState();
+		checkP->hasSounded = false;
+	}
+
+	if (player->isDead && player->currentAnimation->HasFinished() == true) {
+		printf("A ella le gusta la gasolina");
+		LoadState();
 	}
 
 	return ret;
@@ -210,8 +216,8 @@ void Scene::SaveState() {
 	//Save info to XML 
 
 	//Player position
-	sceneNode.child("entities").child("player").attribute("x").set_value(player->GetPosition().getX());
-	sceneNode.child("entities").child("player").attribute("y").set_value(player->GetPosition().getY());
+	sceneNode.child("entities").child("player").attribute("x").set_value(player->GetPosition().getX() - 32);
+	sceneNode.child("entities").child("player").attribute("y").set_value(player->GetPosition().getY() - 32);
 
 	//enemies
 	// ...

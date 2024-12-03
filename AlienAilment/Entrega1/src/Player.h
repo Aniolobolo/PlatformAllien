@@ -64,6 +64,7 @@ public:
 	bool isHit = false;
 	bool isDead = false;
 	bool godMode = false;
+	bool respawn = false;
 
 	pugi::xml_node parameters;
 	Animation* currentAnimation = nullptr;

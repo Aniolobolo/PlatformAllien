@@ -61,14 +61,16 @@ bool Player::Start() {
 }
 
 void Player::ResetPlayerPosition() {
-	pbody->body->SetTransform(b2Vec2(PIXEL_TO_METERS(parameters.attribute("x").as_int()), PIXEL_TO_METERS(parameters.attribute("y").as_int())), 0);
+	
 
+	respawn = true;
 	isJumping = false;
 	isFalling = false;
 	isDead = false;
 
 	currentAnimation = &idle;
 	pbody->body->SetLinearVelocity(b2Vec2(0, -0.1f));
+	respawn = false;
 }
 
 bool Player::Update(float dt)

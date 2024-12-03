@@ -82,7 +82,7 @@ void Checkpoint::OnCollision(PhysBody* physA, PhysBody* physB)
 			
 		}
 		if (currentAnimation->HasFinished()) {
-			currentAnimation = &idle;
+			beam.Reset();
 		}
 		break;
 	}

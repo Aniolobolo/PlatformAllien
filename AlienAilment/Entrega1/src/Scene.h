@@ -4,6 +4,7 @@
 #include "Player.h"
 #include "Enemy.h"
 #include "Checkpoint.h"
+#include "Bullet.h"
 #include <vector>
 
 struct SDL_Texture;
@@ -63,5 +64,6 @@ private:
 	std::string tilePosDebug = "[0,0]";
 	bool once = false;
 	std::vector<Enemy*> enemyList;
+	std::vector<Bullet*> bulletList;
 	bool hasReachedCheckpoint = false;
 };

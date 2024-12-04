@@ -38,6 +38,7 @@ public:
 	bool isAlive = true;
 	int distCounter = 0;
 
+	SDL_RendererFlip hflip = SDL_FLIP_NONE;
 public:
 
 private:
@@ -46,6 +47,9 @@ private:
 	std::vector<Vector2D> pathTiles;  // Almacena la ruta de tiles
 	int currentPathIndex = 0;  // Índice actual en la ruta
 	float ENEMY_SPEED = 50.0f;
+	
+
+	bool flipSprite = false;
 	
 
 	SDL_Texture* texture;

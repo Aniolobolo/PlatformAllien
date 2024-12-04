@@ -17,7 +17,7 @@
 	<scene>
 		<map path="Assets/Maps/" name="Nivel1.tmx" />
 		<entities>
-			<player x="922" y="401" w="64" h="64" texture="Assets/Textures/player/PlayerAnimations.png">
+			<player x="863" y="402" w="64" h="64" texture="Assets/Textures/player/PlayerAnimations.png">
 				<animations>
 					<idle loop="true" speed="0.3">
 						<frame x="0" y="0" w="64" h="64" />
@@ -125,6 +125,22 @@
 					</animations>
 				</checkpoint>
 			</checkpoints>
+			<bullets>
+				<bullet name="bullet" x="200" y="300" w="48" h="48" texture="Assets/Textures/player/bullet.png" gravity="false">
+					<animations>
+						<travel loop="true" speed="0.2">
+							<frame x="0" y="0" w="48" h="48" />
+							<frame x="48" y="0" w="48" h="48" />
+							<frame x="96" y="0" w="48" h="48" />
+							<frame x="144" y="0" w="48" h="48" />
+							<frame x="192" y="0" w="48" h="48" />
+							<frame x="240" y="0" w="48" h="48" />
+							<frame x="288" y="0" w="48" h="48" />
+							<frame x="336" y="0" w="48" h="48" />
+						</travel>
+					</animations>
+				</bullet>
+			</bullets>
 		</entities>
 	</scene>
 </config>

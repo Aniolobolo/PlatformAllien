@@ -110,13 +110,26 @@ bool Enemy::Update(float dt)
 	// Paso 3: Mover al enemigo hacia el penúltimo tile
 	MoveTowardsTargetTile(dt);
 
+	// Obtener la velocidad actual del cuerpo físico
+	float velocityX = pbody->body->GetLinearVelocity().x;
+
+	// Actualizar el estado de flip basado en la dirección del movimiento
+	if (velocityX < -0.1f) { // Movimiento hacia la izquierda
+		flipSprite = true;
+		hflip = SDL_FLIP_HORIZONTAL;
+	}
+	else if (velocityX > 0.1f) { // Movimiento hacia la derecha
+		flipSprite = false;
+		hflip = SDL_FLIP_NONE;
+	}
+
 	// Actualizar la posición física del enemigo basada en la simulación de física
 	b2Transform pbodyPos = pbody->body->GetTransform();
 	position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texH / 2);
 	position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH / 2);
 
 	// Dibujar al enemigo en la pantalla y actualizar su animación
-	Engine::GetInstance().render.get()->DrawTexture(texture, (int)position.getX(), (int)position.getY(), &currentAnimation->GetCurrentFrame());
+	Engine::GetInstance().render.get()->DrawTexture(texture, (int)position.getX(), (int)position.getY(), &currentAnimation->GetCurrentFrame(), hflip);
 	currentAnimation->Update();
 
 	return true;

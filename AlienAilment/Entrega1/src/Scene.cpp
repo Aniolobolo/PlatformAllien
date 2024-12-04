@@ -47,6 +47,14 @@ bool Scene::Awake()
 		enemyList.push_back(enemy);
 	}
 
+	for (pugi::xml_node bulletNode = configParameters.child("entities").child("bullets").child("bullet"); bulletNode; bulletNode = bulletNode.next_sibling("bullet"))
+	{
+		Bullet* bullet = (Bullet*)Engine::GetInstance().entityManager->CreateEntity(EntityType::BULLET);
+		bullet->SetParameters(bulletNode);
+		bulletList.push_back(bullet);
+	}
+
+
 	return ret;
 }
 
@@ -195,7 +203,6 @@ void Scene::LoadState() {
 	player->SetPosition(playerPos);
 
 	//enemies
-	// ...
 
 }
 

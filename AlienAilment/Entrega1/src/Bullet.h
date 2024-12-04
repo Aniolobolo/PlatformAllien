@@ -3,15 +3,16 @@
 #include "Entity.h"
 #include "SDL2/SDL.h"
 #include "Animation.h"
+#include "Pathfinding.h"
 
 struct SDL_Texture;
 
-class Checkpoint : public Entity
+class Bullet : public Entity
 {
 public:
 
-	Checkpoint();
-	virtual ~Checkpoint();
+	Bullet();
+	virtual ~Bullet();
 
 	bool Awake();
 
@@ -25,25 +26,31 @@ public:
 		this->parameters = parameters;
 	}
 
-	bool hasSounded;
+	void SetPosition(Vector2D pos);
+
+	Vector2D GetPosition();
+
 	void OnCollision(PhysBody* physA, PhysBody* physB);
 	void OnCollisionEnd(PhysBody* physA, PhysBody* physB);
 
+	bool isAlive = true;
+	int distCounter = 0;
+
+	SDL_RendererFlip hflip = SDL_FLIP_NONE;
 public:
 
-	bool isPicked = false;
-	
-
 private:
+	bool flipSprite = false;
 
 	SDL_Texture* texture;
-	Animation* currentAnimation = nullptr;
-	Animation idle;
-	Animation beam;
+	const char* texturePath;
+
 	pugi::xml_node parameters;
 	int texW, texH;
-	
-	int checkpointSFX;
-	//L08 TODO 4: Add a physics to an item
+
+	float speed = 5.0f;
+
+	Animation* currentAnimation = nullptr;
+	Animation travel;
 	PhysBody* pbody;
 };

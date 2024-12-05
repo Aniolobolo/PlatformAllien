@@ -355,15 +355,17 @@ void Physics::BeginContact(b2Contact* contact)
 	PhysBody* physA = (PhysBody*)contact->GetFixtureA()->GetBody()->GetUserData().pointer;
 	PhysBody* physB = (PhysBody*)contact->GetFixtureB()->GetBody()->GetUserData().pointer;
 
-	if (physA && physA->listener != NULL) {
-		if (physB) // Ensure physB is also valid
+	if (physA && !IsPendingToDelete(physA) && physA->listener)
+	{
+		if (physB && !IsPendingToDelete(physB))
 		{
 			physA->listener->OnCollision(physA, physB);
 		}
 	}
 
-	if (physB && physB->listener != NULL) {
-		if(physA) // Ensure physA is also valid
+	if (physB && !IsPendingToDelete(physB) && physB->listener)
+	{
+		if (physA && !IsPendingToDelete(physA))
 		{
 			physB->listener->OnCollision(physB, physA);
 		}

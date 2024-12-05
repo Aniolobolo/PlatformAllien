@@ -4,6 +4,7 @@
 #include "SDL2/SDL.h"
 #include "Box2D/Box2D.h"
 #include "Animation.h"
+#include "Bullet.h"
 
 struct SDL_Texture;
 
@@ -37,6 +38,8 @@ public:
 	void SetPosition(Vector2D pos);
 
 	Vector2D GetPosition();
+	Vector2D GetDirection() const;
+
 
 	SDL_RendererFlip hflip = SDL_FLIP_NONE;
 
@@ -74,4 +77,6 @@ public:
 	Animation fall;
 	Animation hit;
 	Animation die;
+
+	std::vector<Bullet*> bulletList;
 };

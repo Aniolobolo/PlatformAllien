@@ -164,7 +164,7 @@ void Enemy::ResetPath() {
 void Enemy::OnCollision(PhysBody* physA, PhysBody* physB) {
 	switch (physB->ctype)
 	{
-	case ColliderType::PLAYER:
+	case ColliderType::BULLET:
 		LOG("Collided with hazard - DESTROY");
 		Engine::GetInstance().entityManager.get()->DestroyEntity(this);
 		isAlive = false;
@@ -175,7 +175,7 @@ void Enemy::OnCollisionEnd(PhysBody* physA, PhysBody* physB)
 {
 	switch (physB->ctype)
 	{
-	case ColliderType::PLAYER:
+	case ColliderType::BULLET:
 		LOG("Collision hazard");
 		isAlive = false;
 		break;

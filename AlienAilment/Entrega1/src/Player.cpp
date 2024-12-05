@@ -8,6 +8,7 @@
 #include "Log.h"
 #include "Physics.h"
 #include "EntityManager.h"
+#include "Bullet.h"
 
 Player::Player() : Entity(EntityType::PLAYER)
 {
@@ -79,6 +80,8 @@ bool Player::Update(float dt)
 	b2Vec2 velocity = b2Vec2(0, pbody->body->GetLinearVelocity().y);
 	isRunning = false;
 
+	position.getX();
+
 	if (!isDead) {
 		// Move left
 		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_A) == KEY_REPEAT) {
@@ -142,8 +145,6 @@ bool Player::Update(float dt)
 
 			velocity.y = pbody->body->GetLinearVelocity().y;
 		}
-
-
 
 	}
 
@@ -296,4 +297,13 @@ Vector2D Player::GetPosition() {
 	b2Vec2 bodyPos = pbody->body->GetTransform().p;
 	Vector2D pos = Vector2D(METERS_TO_PIXELS(bodyPos.x), METERS_TO_PIXELS(bodyPos.y));
 	return pos;
+}
+
+Vector2D Player::GetDirection() const {
+	if (flipSprite) {
+		return Vector2D(-1, 0);  // Izquierda
+	}
+	else {
+		return Vector2D(1, 0);   // Derecha
+	}
 }

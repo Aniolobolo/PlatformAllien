@@ -156,7 +156,6 @@ bool Scene::PostUpdate()
 	}
 
 	if (player->isDead && player->currentAnimation->HasFinished() == true) {
-		printf("A ella le gusta la gasolina");
 		LoadState();
 	}
 

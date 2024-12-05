@@ -8,6 +8,7 @@
 #include "Physics.h"
 #include "Map.h"
 #include "EntityManager.h"
+#include "Player.h"
 
 Bullet::Bullet() : Entity(EntityType::BULLET)
 {
@@ -45,12 +46,22 @@ bool Bullet::Start() {
 	travel.LoadAnimations(parameters.child("animations").child("travel"));
 	currentAnimation = &travel;
 
-	// Agregar física al objeto - inicializar el cuerpo físico
-	pbody = Engine::GetInstance().physics.get()->CreateRectangle((int)position.getX() + texH / 4, (int)position.getY() + texH / 4, 32, 20, bodyType::STATIC);
+	pbody = Engine::GetInstance().physics.get()->CreateRectangle((int)position.getX(), (int)position.getY(), 32, 20, bodyType::DYNAMIC);
+	if (pbody == nullptr) {
+		LOG("Error: PhysBody creation failed!");
+		return false;  // Devolver falso para que no siga ejecutándose el código
+	}
+	else {
+		LOG("PhysBody created successfully at position: (%f, %f)", position.getX(), position.getY());
+	}
 
-	// Asignar tipo de colisionador
-	pbody->ctype = ColliderType::BULLET;
 	pbody->listener = this;
+	pbody->body->SetGravityScale(0);
+
+	// Establecer tipo de colisión
+	pbody->ctype = ColliderType::BULLET;
+
+
 
 
 	return true;
@@ -58,10 +69,23 @@ bool Bullet::Start() {
 
 bool Bullet::Update(float dt)
 {
+	if (pbody == nullptr) {
+		LOG("Error: PhysBody creation failed!");
+		return false;  // O realizar alguna otra acción para manejar el error
+	}
+	
 	// Aplica velocidad constante hacia la derecha
-    b2Vec2 velocity = pbody->body->GetLinearVelocity();
-    velocity.x = 0.0f;  // Velocidad en el eje X, ajusta según lo que necesites
-    pbody->body->SetLinearVelocity(velocity);
+	b2Vec2 velocity = pbody->body->GetLinearVelocity();
+	if (flipSprite) {
+		velocity.x = -3.0f;  // Si el jugador está mirando hacia la izquierda
+	}
+	else {
+		velocity.x = 3.0f;   // Si el jugador está mirando hacia la derecha
+	}
+	pbody->body->SetLinearVelocity(velocity);
+
+
+	
 
 	b2Transform pbodyPos = pbody->body->GetTransform();
 	position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texH / 2);
@@ -75,17 +99,29 @@ bool Bullet::Update(float dt)
 	return true;
 }
 
-bool Bullet::CleanUp()
-{
+bool Bullet::CleanUp() {
+	if (pbody != nullptr) {
+		Engine::GetInstance().physics.get()->DeletePhysBody(pbody);
+		pbody = nullptr;  // Para asegurarte de que no haya referencias colgando
+	}
 	return true;
 }
 
+
+// Bullet.cpp
 void Bullet::SetPosition(Vector2D pos) {
-	pos.setX(pos.getX() + texW / 4);
-	pos.setY(pos.getY() + texH / 4);
+	if (pbody == nullptr) {
+		LOG("Error: Cannot set position, pbody is NULL.");
+		return; // Salir si el pbody es NULL
+	}
+
 	b2Vec2 bodyPos = b2Vec2(PIXEL_TO_METERS(pos.getX()), PIXEL_TO_METERS(pos.getY()));
-	pbody->body->SetTransform(bodyPos, 0);
+	pbody->body->SetTransform(bodyPos, 0);  // Establecer la nueva posición física
+
+	position = pos;  // Actualizar la posición en pantalla
 }
+
+
 
 Vector2D Bullet::GetPosition() {
 	b2Vec2 bodyPos = pbody->body->GetTransform().p;
@@ -93,11 +129,18 @@ Vector2D Bullet::GetPosition() {
 	return pos;
 }
 
+void Bullet::SetDirection(const Vector2D& direction) {
+    float bulletSpeed = 5.0f;
+    b2Vec2 velocity = b2Vec2(direction.getX() * bulletSpeed, direction.getY() * bulletSpeed);
+    pbody->body->SetLinearVelocity(velocity); // Establecer la velocidad de la bala
+}
+
 void Bullet::OnCollision(PhysBody* physA, PhysBody* physB) {
 	switch (physB->ctype)
 	{
 	case ColliderType::PLATFORM:
-		LOG("Collided with hazard - DESTROY");
+		LOG("Collided with PLATFORM - DESTROY");
+		isAlive = false;
 		Engine::GetInstance().entityManager.get()->DestroyEntity(this);
 		break;
 	}

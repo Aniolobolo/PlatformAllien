@@ -3,6 +3,7 @@
 #include "Module.h"
 #include "Player.h"
 #include "Enemy.h"
+#include "EnemyFloor.h"
 #include "Checkpoint.h"
 #include "Bullet.h"
 #include <vector>
@@ -64,6 +65,7 @@ private:
 	std::string tilePosDebug = "[0,0]";
 	bool once = false;
 	std::vector<Enemy*> enemyList;
+	std::vector<EnemyFloor*> enemyFList;
 	std::vector<Bullet*> bulletList;
 	bool hasReachedCheckpoint = false;
 };

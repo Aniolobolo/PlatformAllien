@@ -12,6 +12,7 @@
 #include "Map.h"
 #include "Item.h"
 
+
 Scene::Scene() : Module()
 {
 	name = "scene";
@@ -45,6 +46,12 @@ bool Scene::Awake()
 		Enemy* enemy = (Enemy*)Engine::GetInstance().entityManager->CreateEntity(EntityType::ENEMY);
 		enemy->SetParameters(enemyNode);
 		enemyList.push_back(enemy);
+	}
+	for (pugi::xml_node enemyNode = configParameters.child("entities").child("enemies").child("enemyFloor"); enemyNode; enemyNode = enemyNode.next_sibling("enemyFloor"))
+	{
+		EnemyFloor* enemyF = (EnemyFloor*)Engine::GetInstance().entityManager->CreateEntity(EntityType::ENEMYFLOOR);
+		enemyF->SetParameters(enemyNode);
+		enemyFList.push_back(enemyF);
 	}
 
 	for (pugi::xml_node bulletNode = configParameters.child("entities").child("bullets").child("bullet"); bulletNode; bulletNode = bulletNode.next_sibling("bullet"))

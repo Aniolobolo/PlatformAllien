@@ -104,7 +104,6 @@ bool Scene::Update(float dt)
 		SDL_RenderCopy(Engine::GetInstance().render->renderer, controls, nullptr, &dstRect);
 	}
 
-
 	//Get mouse position and obtain the map coordinate
 	Vector2D mousePos = Engine::GetInstance().input.get()->GetMousePosition();
 	Vector2D mouseTile = Engine::GetInstance().map.get()->WorldToMap(mousePos.getX() - Engine::GetInstance().render.get()->camera.x,

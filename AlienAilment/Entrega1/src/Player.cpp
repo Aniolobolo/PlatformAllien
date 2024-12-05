@@ -120,6 +120,13 @@ bool Player::Update(float dt)
 			isFalling = false;
 		}
 
+		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_Q) == KEY_DOWN) {
+			Vector2D bulletPosition = GetPosition();
+			Bullet* bullet = new Bullet();
+			bullet->SetPosition(bulletPosition);
+			Engine::GetInstance().entityManager.get()->AddEntity(bullet);
+		}
+
 		if (isRunning) {
 			currentAnimation = &move;
 		}
@@ -300,6 +307,7 @@ Vector2D Player::GetPosition() {
 }
 
 Vector2D Player::GetDirection() const {
+
 	if (flipSprite) {
 		return Vector2D(-1, 0);  // Izquierda
 	}

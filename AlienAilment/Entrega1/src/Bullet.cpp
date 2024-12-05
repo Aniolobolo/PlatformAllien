@@ -23,17 +23,6 @@ bool Bullet::Awake() {
 
 bool Bullet::Start() {
 
-	// PROBLEMAS PARA COMENTAR CON EL PROFE
-	
-	/*EL LISTENER ES LA RAÍZ DE TODOS LOS PROBLEMAS
-
-	El listener del bullet falla y se vuelve null después de borrarse. No se como solucionarlo.
-
-	El enemy de normal después de morirse no puede ponerse con el clic, pero cuando el player se muere y respawnea, cuando clica con el ratón peta.
-
-	Como hacer que el bullet se ponga en la posición del player y no hacerlo desde el config.xml*/
-
-
 	//initilize textures
 	texture = Engine::GetInstance().textures.get()->Load(parameters.attribute("texture").as_string());
 	position.setX(parameters.attribute("x").as_int());
@@ -74,18 +63,9 @@ bool Bullet::Update(float dt)
 		return false;  // O realizar alguna otra acción para manejar el error
 	}
 	
-	// Aplica velocidad constante hacia la derecha
 	b2Vec2 velocity = pbody->body->GetLinearVelocity();
-	if (flipSprite) {
-		velocity.x = -3.0f;  // Si el jugador está mirando hacia la izquierda
-	}
-	else {
-		velocity.x = 3.0f;   // Si el jugador está mirando hacia la derecha
-	}
+	velocity.x = 3.0f;  // Velocidad constante hacia la derecha
 	pbody->body->SetLinearVelocity(velocity);
-
-
-	
 
 	b2Transform pbodyPos = pbody->body->GetTransform();
 	position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texH / 2);
@@ -127,12 +107,6 @@ Vector2D Bullet::GetPosition() {
 	b2Vec2 bodyPos = pbody->body->GetTransform().p;
 	Vector2D pos = Vector2D(METERS_TO_PIXELS(bodyPos.x), METERS_TO_PIXELS(bodyPos.y));
 	return pos;
-}
-
-void Bullet::SetDirection(const Vector2D& direction) {
-    float bulletSpeed = 5.0f;
-    b2Vec2 velocity = b2Vec2(direction.getX() * bulletSpeed, direction.getY() * bulletSpeed);
-    pbody->body->SetLinearVelocity(velocity); // Establecer la velocidad de la bala
 }
 
 void Bullet::OnCollision(PhysBody* physA, PhysBody* physB) {

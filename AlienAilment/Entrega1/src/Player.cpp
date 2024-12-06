@@ -121,13 +121,14 @@ bool Player::Update(float dt)
 		}
 
 		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_Q) == KEY_DOWN) {
-			Vector2D bulletPosition = GetPosition();
-			Bullet* bullet = new Bullet();
-			bullet->SetParameters(Engine::GetInstance().scene.get()->configParameters); // Poner los parametros de la bala creados en scene mediante bulletNode
-			Engine::GetInstance().entityManager.get()->AddEntity(bullet);
-			bullet->Start();
-			bullet->SetPosition(bulletPosition);
-		}
+            Vector2D bulletPosition = GetPosition();
+            Bullet* bullet = new Bullet();
+            bullet->SetParameters(Engine::GetInstance().scene.get()->configParameters); // Poner los parametros de la bala creados en scene mediante bulletNode
+            bullet->texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/player/bullet.png");
+            Engine::GetInstance().entityManager.get()->AddEntity(bullet);
+            bullet->Start();
+            bullet->SetPosition(bulletPosition);
+        }
 
 		if (isRunning) {
 			currentAnimation = &move;

@@ -51,6 +51,7 @@ private:
 
 	bool flipSprite = false;
 	bool draw = false;
+	bool isOnFloor = false;
 
 	SDL_Texture* texture;
 	const char* texturePath;

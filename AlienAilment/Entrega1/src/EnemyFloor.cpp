@@ -49,7 +49,7 @@ bool EnemyFloor::Start() {
     // Inicializar pathfinding
     pathfinding = new Pathfinding();
     ResetPath();
-    pbody->body->SetGravityScale(15);
+    pbody->body->SetGravityScale(5);
     isAlive = true;
 
     return true;
@@ -103,9 +103,11 @@ bool EnemyFloor::Update(float dt)
     // Recalcular el camino hacia el jugador
     ResetPath(); // Restablecer el camino antes de calcular uno nuevo
 
-    // Propagar A* hasta que se obtenga un camino válido
-    while (pathfinding->pathTiles.empty()) {
-        pathfinding->PropagateAStar(SQUARED);
+    if (isOnFloor) {
+        // Propagar A* hasta que se obtenga un camino válido
+        while (pathfinding->pathTiles.empty()) {
+            pathfinding->PropagateAStar(SQUARED);
+        }
     }
 
     if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F1) == KEY_DOWN) {
@@ -177,6 +179,12 @@ void EnemyFloor::OnCollision(PhysBody* physA, PhysBody* physB) {
         Engine::GetInstance().entityManager.get()->DestroyEntity(this);
         isAlive = false;
         break;
+    case ColliderType::PLATFORM:
+        isOnFloor = true;
+        break;
+    case ColliderType::HAZARD:
+        isOnFloor = true;
+        break;
     }
 }
 
@@ -187,6 +195,12 @@ void EnemyFloor::OnCollisionEnd(PhysBody* physA, PhysBody* physB)
     case ColliderType::BULLET:
         LOG("Collision hazard");
         isAlive = false;
+        break;
+    case ColliderType::PLATFORM:
+        isOnFloor = false;
+        break;
+    case ColliderType::HAZARD:
+        isOnFloor = false;
         break;
     }
 }

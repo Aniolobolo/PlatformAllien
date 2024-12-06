@@ -123,8 +123,10 @@ bool Player::Update(float dt)
 		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_Q) == KEY_DOWN) {
 			Vector2D bulletPosition = GetPosition();
 			Bullet* bullet = new Bullet();
-			bullet->SetPosition(bulletPosition);
+			bullet->SetParameters(Engine::GetInstance().scene.get()->configParameters); // Poner los parametros de la bala creados en scene mediante bulletNode
 			Engine::GetInstance().entityManager.get()->AddEntity(bullet);
+			bullet->Start();
+			bullet->SetPosition(bulletPosition);
 		}
 
 		if (isRunning) {

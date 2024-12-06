@@ -54,14 +54,12 @@ bool Scene::Awake()
 		enemyFList.push_back(enemyF);
 	}
 
-	for (pugi::xml_node bulletNode = configParameters.child("entities").child("bullets").child("bullet"); bulletNode; bulletNode = bulletNode.next_sibling("bullet"))
+	for (bulletNode = configParameters.child("entities").child("bullets").child("bullet"); bulletNode; bulletNode = bulletNode.next_sibling("bullet"))
 	{
 		Bullet* bullet = (Bullet*)Engine::GetInstance().entityManager->CreateEntity(EntityType::BULLET);
 		bullet->SetParameters(bulletNode);
 		bulletList.push_back(bullet);
 	}
-
-
 	return ret;
 }
 
@@ -156,11 +154,13 @@ bool Scene::PostUpdate()
 	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F5) == KEY_DOWN)
 		SaveState();
 
-	if (checkP->hasSounded) {
-		SaveState();
-		checkP->hasSounded = false;
+	if (!hasReachedCheckpoint) {
+		if (checkP->hasSounded) {
+			SaveState();
+			hasReachedCheckpoint = true;
+		}
 	}
-
+	
 	if (player->isDead && player->currentAnimation->HasFinished() == true) {
 		LoadState();
 	}

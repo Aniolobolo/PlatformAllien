@@ -52,6 +52,7 @@ public:
 		return tilePosDebug;
 
 	}
+	pugi::xml_node bulletNode;
 
 private:
 	SDL_Texture* img;

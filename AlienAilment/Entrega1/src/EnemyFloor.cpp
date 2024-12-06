@@ -108,8 +108,13 @@ bool EnemyFloor::Update(float dt)
         pathfinding->PropagateAStar(SQUARED);
     }
 
-    // Dibujar el camino calculado para debug
-    pathfinding->DrawPath();
+    if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F1) == KEY_DOWN) {
+        draw = !draw;
+    }
+
+    if (draw) {
+        pathfinding->DrawPath();
+    }
 
     // Mover al enemigo hacia el penúltimo tile
     MoveTowardsTargetTile(dt);

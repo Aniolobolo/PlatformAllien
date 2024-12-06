@@ -40,11 +40,12 @@ public:
 
 	SDL_RendererFlip hflip = SDL_FLIP_NONE;
 public:
+	SDL_Texture* texture;
 
 private:
 	bool flipSprite = false;
 
-	SDL_Texture* texture;
+	
 	const char* texturePath;
 
 	pugi::xml_node parameters;

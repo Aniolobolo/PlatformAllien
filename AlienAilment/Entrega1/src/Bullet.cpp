@@ -35,10 +35,10 @@ bool Bullet::Start() {
 	travel.LoadAnimations(parameters.child("animations").child("travel"));
 	currentAnimation = &travel;
 
-	pbody = Engine::GetInstance().physics.get()->CreateRectangle((int)position.getX(), (int)position.getY(), 32, 20, bodyType::DYNAMIC);
+	pbody = Engine::GetInstance().physics.get()->CreateRectangle((int)position.getX(), (int)position.getY(), 22, 10, bodyType::DYNAMIC);
 	if (pbody == nullptr) {
 		LOG("Error: PhysBody creation failed!");
-		return false;  // Devolver falso para que no siga ejecutándose el código
+		return false; 
 	}
 	else {
 		LOG("PhysBody created successfully at position: (%f, %f)", position.getX(), position.getY());

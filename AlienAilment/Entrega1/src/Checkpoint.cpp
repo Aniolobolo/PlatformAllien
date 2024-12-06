@@ -79,11 +79,11 @@ void Checkpoint::OnCollision(PhysBody* physA, PhysBody* physB)
 		if (!hasSounded) {
 			hasSounded = true;
 			Engine::GetInstance().audio.get()->PlayFx(checkpointSFX);
-			
+			if (currentAnimation->HasFinished()) {
+				beam.Reset();
+			}
 		}
-		if (currentAnimation->HasFinished()) {
-			beam.Reset();
-		}
+
 		break;
 	}
 }

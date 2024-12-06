@@ -50,7 +50,7 @@ private:
 
 
 	bool flipSprite = false;
-
+	bool draw = false;
 
 	SDL_Texture* texture;
 	const char* texturePath;

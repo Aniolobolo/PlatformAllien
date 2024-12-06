@@ -58,7 +58,6 @@ public:
 	int fallFxId;
 	int shootFxId;
 	int jumpFxId;
-	int impactFxId;
 
 	// L08 TODO 5: Add physics to the player - declare a Physics body
 	PhysBody* pbody;

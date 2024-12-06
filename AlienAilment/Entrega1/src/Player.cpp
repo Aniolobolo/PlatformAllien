@@ -59,7 +59,6 @@ bool Player::Start() {
 	fallFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/fall.ogg");
 	shootFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/shoot.wav");
 	jumpFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/jump.wav");
-	impactFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/impact.wav");
 
 	return true;
 }
@@ -221,7 +220,6 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 		LOG("Collision PLATFORM");
 		//reset the jump flag when touching the ground
 		if (isFalling) {
-			Engine::GetInstance().audio.get()->PlayFx(impactFxId);
 			isFalling = false;
 			isJumping = false;
 		}

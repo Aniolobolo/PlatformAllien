@@ -103,11 +103,8 @@ bool EnemyFloor::Update(float dt)
     // Recalcular el camino hacia el jugador
     ResetPath(); // Restablecer el camino antes de calcular uno nuevo
 
-    if (isOnFloor) {
-        // Propagar A* hasta que se obtenga un camino válido
-        while (pathfinding->pathTiles.empty()) {
-            pathfinding->PropagateAStar(SQUARED);
-        }
+    while (pathfinding->pathTiles.empty()) {
+        pathfinding->PropagateAStar(SQUARED);
     }
 
     if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F1) == KEY_DOWN) {

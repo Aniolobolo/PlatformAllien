@@ -29,7 +29,8 @@ public:
 	void SetPosition(Vector2D pos);
 
 	Vector2D GetPosition();
-	void SetDirection(const Vector2D& direction);
+	void SetDirection(const Vector2D& dir) { direction = dir; }
+
 
 
 	void OnCollision(PhysBody* physA, PhysBody* physB);
@@ -50,6 +51,7 @@ private:
 
 	pugi::xml_node parameters;
 	int texW, texH;
+	Vector2D direction;
 
 	Animation* currentAnimation = nullptr;
 	Animation travel;

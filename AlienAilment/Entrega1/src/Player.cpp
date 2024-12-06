@@ -59,6 +59,7 @@ bool Player::Start() {
 	fallFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/fall.ogg");
 	shootFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/shoot.wav");
 	jumpFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/jump.wav");
+	Engine::GetInstance().scene.get()->SaveState();
 
 	return true;
 }
@@ -72,6 +73,7 @@ void Player::ResetPlayerPosition() {
 
 	currentAnimation = &idle;
 	pbody->body->SetLinearVelocity(b2Vec2(0, -0.1f));
+	Engine::GetInstance().scene.get()->LoadState();
 	respawn = false;
 }
 
@@ -116,12 +118,13 @@ bool Player::Update(float dt)
 		}
 
 		// Shoot
-		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_Q) == KEY_DOWN && !isShooting && !isJumping && !isFalling) {
+		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_Q) == KEY_REPEAT && !isShooting && !isJumping && !isFalling) {
 			isShooting = true;
 			currentAnimation = &shoot;
 			Vector2D bulletPosition = GetPosition();
 			bulletPosition.setX(bulletPosition.getX() + (GetDirection().getX() * 28));
 			Bullet* bullet = new Bullet();
+			bullet->SetDirection(GetDirection());  // Establecer la dirección de la bala
 			bullet->SetParameters(Engine::GetInstance().scene.get()->configParameters);
 			bullet->texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/player/bullet.png");
 			Engine::GetInstance().entityManager.get()->AddEntity(bullet);
@@ -129,6 +132,7 @@ bool Player::Update(float dt)
 			bullet->SetPosition(bulletPosition);
 			Engine::GetInstance().audio.get()->PlayFx(shootFxId);
 		}
+
 
 		if (isShooting && currentAnimation == &shoot && currentAnimation->HasFinished()) {
 			isShooting = false;
@@ -178,18 +182,26 @@ bool Player::Update(float dt)
 		}
 	}
 
-	// God mode toggle
+	//godmode
 	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F2) == KEY_DOWN) {
 		godMode = !godMode;
-		LOG(godMode ? "God mode on" : "God mode off");
+		if (godMode) {
+			LOG("God mode on");
+		}
+		else {
+			LOG("God mode off");
+		}
+
 	}
 
-	// Die
+	//die
 	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F3) == KEY_DOWN) {
 		Engine::GetInstance().audio.get()->PlayFx(dieFxId);
 		isDead = true;
 		currentAnimation = &die;
+
 	}
+
 
 	// Apply the velocity to the player
 	pbody->body->SetLinearVelocity(velocity);

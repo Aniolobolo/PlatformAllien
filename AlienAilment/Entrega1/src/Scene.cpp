@@ -160,10 +160,6 @@ bool Scene::PostUpdate()
 			hasReachedCheckpoint = true;
 		}
 	}
-	
-	if (player->isDead && player->currentAnimation->HasFinished() == true) {
-		LoadState();
-	}
 
 	return ret;
 }

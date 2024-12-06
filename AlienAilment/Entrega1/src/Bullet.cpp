@@ -24,7 +24,7 @@ bool Bullet::Awake() {
 bool Bullet::Start() {
 
 	//initilize textures
-	texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/player/bullet.png");
+	texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/player/bullet2.png");
 	position.setX(parameters.attribute("x").as_int());
 	position.setY(parameters.attribute("y").as_int());
 	texW = parameters.attribute("w").as_int();
@@ -68,11 +68,11 @@ bool Bullet::Update(float dt)
 	pbody->body->SetLinearVelocity(velocity);
 
 	b2Transform pbodyPos = pbody->body->GetTransform();
-	position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texH / 2);
-	position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH / 2);
+	position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - 12);
+	position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - 12);
 
 	// Dibujar al enemigo en la pantalla y actualizar su animación
-	Engine::GetInstance().render.get()->DrawTexture(texture, (int)position.getX(), (int)position.getY(), &currentAnimation->GetCurrentFrame());
+	Engine::GetInstance().render.get()->DrawTexture(texture, (int)position.getX(), (int)position.getY());
 	currentAnimation->Update();
 
 
@@ -117,6 +117,21 @@ void Bullet::OnCollision(PhysBody* physA, PhysBody* physB) {
 		isAlive = false;
 		Engine::GetInstance().entityManager.get()->DestroyEntity(this);
 		break;
+	case ColliderType::HAZARD:
+		LOG("Collided with PLATFORM - DESTROY");
+		isAlive = false;
+		Engine::GetInstance().entityManager.get()->DestroyEntity(this);
+		break;
+	case ColliderType::CHECKPOINT:
+		LOG("Collided with PLATFORM - DESTROY");
+		isAlive = false;
+		Engine::GetInstance().entityManager.get()->DestroyEntity(this);
+		break;
+	case ColliderType::ITEM:
+		LOG("Collided with PLATFORM - DESTROY");
+		isAlive = false;
+		Engine::GetInstance().entityManager.get()->DestroyEntity(this);
+		break;
 	}
 }
 void Bullet::OnCollisionEnd(PhysBody* physA, PhysBody* physB)
@@ -126,5 +141,15 @@ void Bullet::OnCollisionEnd(PhysBody* physA, PhysBody* physB)
 	case ColliderType::PLATFORM:
 		LOG("Collision hazard");
 		break;
+	case ColliderType::HAZARD:
+		LOG("Collided with hazard - DESTROY");
+		break;
+	case ColliderType::CHECKPOINT:
+		LOG("Collided with hazard - DESTROY");
+		break;
+	case ColliderType::ITEM:
+		LOG("Collided with hazard - DESTROY");
+		break;
+
 	}
 }

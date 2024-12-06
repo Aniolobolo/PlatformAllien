@@ -40,7 +40,7 @@ bool Player::Start() {
 	move.LoadAnimations(parameters.child("animations").child("move"));
 	jump.LoadAnimations(parameters.child("animations").child("jump"));
 	fall.LoadAnimations(parameters.child("animations").child("fall"));
-	hit.LoadAnimations(parameters.child("animations").child("hit"));
+	shoot.LoadAnimations(parameters.child("animations").child("shoot"));
 	die.LoadAnimations(parameters.child("animations").child("die"));
 	currentAnimation = &idle;
 
@@ -57,17 +57,19 @@ bool Player::Start() {
 	pickCoinFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/coin.ogg");
 	dieFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/death.ogg");
 	fallFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/fall.ogg");
+	shootFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/shoot.wav");
+	jumpFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/jump.wav");
+	impactFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/impact.wav");
 
 	return true;
 }
 
 void Player::ResetPlayerPosition() {
-	
-
 	respawn = true;
 	isJumping = false;
 	isFalling = false;
 	isDead = false;
+	isShooting = false;
 
 	currentAnimation = &idle;
 	pbody->body->SetLinearVelocity(b2Vec2(0, -0.1f));
@@ -88,9 +90,7 @@ bool Player::Update(float dt)
 			flipSprite = true;
 			velocity.x = -speed * 16;
 			isRunning = true;
-			if (flipSprite == true && hflip == SDL_FLIP_NONE) {
-				hflip = SDL_FLIP_HORIZONTAL;
-			}
+			hflip = SDL_FLIP_HORIZONTAL;
 		}
 
 		// Move right
@@ -98,52 +98,48 @@ bool Player::Update(float dt)
 			flipSprite = false;
 			velocity.x = speed * 16;
 			isRunning = true;
-			if (flipSprite == false && hflip == SDL_FLIP_HORIZONTAL) {
-				hflip = SDL_FLIP_NONE;
-			}
-
+			hflip = SDL_FLIP_NONE;
 		}
 
-		float verticalVelocity = pbody->body->GetLinearVelocity().y;
-		//Jump
-		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_SPACE) == KEY_DOWN && isJumping == false && isFalling == false) {
-			// Apply an initial upward force
+		// Jump
+		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_SPACE) == KEY_DOWN && !isJumping && !isFalling) {
+			Engine::GetInstance().audio.get()->PlayFx(jumpFxId);
 			pbody->body->ApplyLinearImpulseToCenter(b2Vec2(0, -jumpForce), true);
 			isJumping = true;
 			isFalling = false;
 		}
 
-		//fly using god mode
+		// Fly using god mode
 		if (godMode && Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_SPACE) == KEY_REPEAT) {
-			pbody->body->ApplyLinearImpulseToCenter(b2Vec2(0, -0.10), true);
+			pbody->body->ApplyLinearImpulseToCenter(b2Vec2(0, -0.10f), true);
 			isJumping = true;
 			isFalling = false;
 		}
 
-		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_Q) == KEY_DOWN) {
-            Vector2D bulletPosition = GetPosition();
-            Bullet* bullet = new Bullet();
-            bullet->SetParameters(Engine::GetInstance().scene.get()->configParameters); // Poner los parametros de la bala creados en scene mediante bulletNode
-            bullet->texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/player/bullet.png");
-            Engine::GetInstance().entityManager.get()->AddEntity(bullet);
-            bullet->Start();
-            bullet->SetPosition(bulletPosition);
-        }
-
-		if (isRunning) {
-			currentAnimation = &move;
-		}
-		else {
-			currentAnimation = &idle;
-
+		// Shoot
+		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_Q) == KEY_DOWN && !isShooting && !isJumping && !isFalling) {
+			isShooting = true;
+			currentAnimation = &shoot;
+			Vector2D bulletPosition = GetPosition();
+			bulletPosition.setX(bulletPosition.getX() + (GetDirection().getX() * 28));
+			Bullet* bullet = new Bullet();
+			bullet->SetParameters(Engine::GetInstance().scene.get()->configParameters);
+			bullet->texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/player/bullet.png");
+			Engine::GetInstance().entityManager.get()->AddEntity(bullet);
+			bullet->Start();
+			bullet->SetPosition(bulletPosition);
+			Engine::GetInstance().audio.get()->PlayFx(shootFxId);
 		}
 
-		if (!isJumping && isFalling) {
-			currentAnimation = &fall;
+		if (isShooting && currentAnimation == &shoot && currentAnimation->HasFinished()) {
+			isShooting = false;
+			shoot.Reset();
 		}
+
+		float verticalVelocity = pbody->body->GetLinearVelocity().y;
 
 		// If the player is jumping, we don't want to apply gravity, we use the current velocity prduced by the jump
-		if (isJumping == true && !isDead)
+		if (isJumping && !isDead)
 		{
 			if (verticalVelocity > 0) {
 				currentAnimation = &fall;
@@ -151,11 +147,28 @@ bool Player::Update(float dt)
 			}
 			else {
 				currentAnimation = &jump;
+				isFalling = false;
 			}
 
 			velocity.y = pbody->body->GetLinearVelocity().y;
 		}
 
+		// Update animation state
+		if (isShooting) {
+			currentAnimation = &shoot;
+		}
+		else if (isJumping && !isFalling) {
+			currentAnimation = &jump;
+		}
+		else if (isFalling) {
+			currentAnimation = &fall;
+		}
+		else if (isRunning) {
+			currentAnimation = &move;
+		}
+		else {
+			currentAnimation = &idle;
+		}
 	}
 
 	if (isDead) {
@@ -166,33 +179,25 @@ bool Player::Update(float dt)
 		}
 	}
 
-	//godmode
+	// God mode toggle
 	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F2) == KEY_DOWN) {
 		godMode = !godMode;
-		if (godMode) {
-			LOG("God mode on");
-		}
-		else {
-			LOG("God mode off");
-		}
-
+		LOG(godMode ? "God mode on" : "God mode off");
 	}
 
-	//die
+	// Die
 	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F3) == KEY_DOWN) {
 		Engine::GetInstance().audio.get()->PlayFx(dieFxId);
 		isDead = true;
 		currentAnimation = &die;
-
 	}
-
 
 	// Apply the velocity to the player
 	pbody->body->SetLinearVelocity(velocity);
 
 	b2Transform pbodyPos = pbody->body->GetTransform();
-	position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texH / 2);
-	position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH / 2);
+	position.setX(static_cast<float>(METERS_TO_PIXELS(pbodyPos.p.x)) - texH / 2);
+	position.setY(static_cast<float>(METERS_TO_PIXELS(pbodyPos.p.y)) - texH / 2);
 
 	Engine::GetInstance().render.get()->DrawTexture(texture, (int)position.getX(), (int)position.getY(), &currentAnimation->GetCurrentFrame(), hflip);
 	currentAnimation->Update();
@@ -216,6 +221,7 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 		LOG("Collision PLATFORM");
 		//reset the jump flag when touching the ground
 		if (isFalling) {
+			Engine::GetInstance().audio.get()->PlayFx(impactFxId);
 			isFalling = false;
 			isJumping = false;
 		}
@@ -233,7 +239,7 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 			LOG("Collision HAZARD");
 		}
 		else{
-			
+			isJumping = false;
 			isFalling = false;
 		}
 		break;
@@ -263,6 +269,10 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 		break;
 	case ColliderType::UNKNOWN:
 		LOG("Collision UNKNOWN");
+		if (isFalling) {
+			isFalling = false;
+			isJumping = false;
+		}
 		break;
 	default:
 		break;

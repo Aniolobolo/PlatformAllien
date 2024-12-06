@@ -17,7 +17,7 @@
 	<scene>
 		<map path="Assets/Maps/" name="Nivel1.tmx" />
 		<entities>
-			<player x="858" y="406" w="64" h="64" texture="Assets/Textures/player/PlayerAnimations.png">
+			<player x="873" y="401" w="64" h="64" texture="Assets/Textures/player/PlayerAnimations.png">
 				<animations>
 					<idle loop="true" speed="0.3">
 						<frame x="0" y="0" w="64" h="64" />
@@ -60,10 +60,11 @@
 						<frame x="128" y="192" w="64" h="64" />
 						<frame x="192" y="192" w="64" h="64" />
 					</fall>
-					<hit loop="false" speed="0.2">
+					<shoot loop="false" speed="0.1">
 						<frame x="0" y="256" w="64" h="64" />
 						<frame x="64" y="256" w="64" h="64" />
-					</hit>
+						<frame x="128" y="256" w="64" h="64" />
+					</shoot>
 					<die loop="false" speed="0.1">
 						<frame x="0" y="320" w="64" h="64" />
 						<frame x="64" y="320" w="64" h="64" />

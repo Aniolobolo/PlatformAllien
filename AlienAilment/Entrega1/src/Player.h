@@ -56,6 +56,9 @@ public:
 	int pickCoinFxId;
 	int dieFxId;
 	int fallFxId;
+	int shootFxId;
+	int jumpFxId;
+	int impactFxId;
 
 	// L08 TODO 5: Add physics to the player - declare a Physics body
 	PhysBody* pbody;
@@ -64,7 +67,7 @@ public:
 	bool canJump;
 	bool isFalling = false;
 	bool isRunning = false; //Flag to check if the player is currently running
-	bool isHit = false;
+	bool isShooting = false;
 	bool isDead = false;
 	bool godMode = false;
 	bool respawn = false;
@@ -75,7 +78,7 @@ public:
 	Animation move;
 	Animation jump;
 	Animation fall;
-	Animation hit;
+	Animation shoot;
 	Animation die;
 
 	std::vector<Bullet*> bulletList;

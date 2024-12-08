@@ -9,16 +9,20 @@
 #include "Physics.h"
 #include "Map.h"
 #include "EntityManager.h"
+#include "Player.h"
 
-EnemyFloor::EnemyFloor() : Entity(EntityType::ENEMY) {}
+EnemyFloor::EnemyFloor() : Entity(EntityType::ENEMY), pathfinding(nullptr), pbody(nullptr) {}
 
 EnemyFloor::~EnemyFloor() {
-    delete pathfinding;
+    if (pathfinding != nullptr) {
+        delete pathfinding;
+    }
 }
 
 bool EnemyFloor::Awake() {
     return true;
 }
+
 bool EnemyFloor::Start() {
 
     // Inicializar texturas
@@ -35,6 +39,12 @@ bool EnemyFloor::Start() {
 
     // Agregar física al objeto - inicializar el cuerpo físico
     pbody = Engine::GetInstance().physics.get()->CreateCircle((int)position.getX() + texH / 4, (int)position.getY() + texH / 4, texH / 4, bodyType::DYNAMIC);
+
+    // Verificar si pbody se inicializó correctamente
+    if (pbody == nullptr) {
+        LOG("Error al crear el cuerpo físico del enemigo");
+        return false;
+    }
 
     // Asignar tipo de colisionador
     pbody->ctype = ColliderType::ENEMY;
@@ -54,10 +64,11 @@ bool EnemyFloor::Start() {
 
     return true;
 }
+
 void EnemyFloor::MoveTowardsTargetTile(float dt)
 {
     // Asegurarse de que hay suficientes tiles en el camino para calcular el movimiento
-    if (pathfinding->pathTiles.size() < 2) return;
+    if (pathfinding == nullptr || pathfinding->pathTiles.size() < 2) return;
 
     // Paso 1: Verificar si el path tiene más de 20 tiles
     if (pathfinding->pathTiles.size() > 20) {
@@ -145,7 +156,9 @@ bool EnemyFloor::Update(float dt)
 
 bool EnemyFloor::CleanUp()
 {
-    Engine::GetInstance().physics.get()->DeletePhysBody(pbody);
+    if (pbody != nullptr) {
+        Engine::GetInstance().physics.get()->DeletePhysBody(pbody);
+    }
     return true;
 }
 
@@ -153,19 +166,29 @@ void EnemyFloor::SetPosition(Vector2D pos) {
     pos.setX(pos.getX() + texW / 2);
     pos.setY(pos.getY() + texH / 2);
     b2Vec2 bodyPos = b2Vec2(PIXEL_TO_METERS(pos.getX()), PIXEL_TO_METERS(pos.getY()));
-    pbody->body->SetTransform(bodyPos, 0);
+    if (pbody != nullptr) {
+        pbody->body->SetTransform(bodyPos, 0);
+    }
 }
 
 Vector2D EnemyFloor::GetPosition() {
-    b2Vec2 bodyPos = pbody->body->GetTransform().p;
-    Vector2D pos = Vector2D(METERS_TO_PIXELS(bodyPos.x), METERS_TO_PIXELS(bodyPos.y));
-    return pos;
+    if (!isAlive) {
+        return Vector2D(0, 0);
+    }
+    if (pbody != nullptr) {
+        b2Vec2 bodyPos = pbody->body->GetTransform().p;
+        Vector2D pos = Vector2D(METERS_TO_PIXELS(bodyPos.x), METERS_TO_PIXELS(bodyPos.y));
+        return pos;
+    }
+    return Vector2D(0, 0);
 }
 
 void EnemyFloor::ResetPath() {
     Vector2D pos = GetPosition();
     Vector2D tilePos = Engine::GetInstance().map.get()->WorldToMap(pos.getX(), pos.getY());
-    pathfinding->ResetPath(tilePos);
+    if (pathfinding != nullptr) {
+        pathfinding->ResetPath(tilePos);
+    }
 }
 
 void EnemyFloor::OnCollision(PhysBody* physA, PhysBody* physB) {
@@ -173,8 +196,9 @@ void EnemyFloor::OnCollision(PhysBody* physA, PhysBody* physB) {
     {
     case ColliderType::BULLET:
         LOG("Collided with hazard - DESTROY");
-        Engine::GetInstance().entityManager.get()->DestroyEntity(this);
         isAlive = false;
+        Engine::GetInstance().entityManager.get()->DestroyEntity(this);
+        
         break;
     case ColliderType::PLATFORM:
         isOnFloor = true;

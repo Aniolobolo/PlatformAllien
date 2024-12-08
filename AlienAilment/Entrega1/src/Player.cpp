@@ -27,7 +27,6 @@ bool Player::Awake() {
 }
 
 bool Player::Start() {
-
 	//L03: TODO 2: Initialize Player parameters
 	texture = Engine::GetInstance().textures.get()->Load(parameters.attribute("texture").as_string());
 	position.setX(parameters.attribute("x").as_int());
@@ -53,13 +52,14 @@ bool Player::Start() {
 	// L08 TODO 7: Assign collider type
 	pbody->ctype = ColliderType::PLAYER;
 
+	Engine::GetInstance().scene.get()->SaveState();
+
 	//initialize audio effect
 	pickCoinFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/coin.ogg");
 	dieFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/death.ogg");
 	fallFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/fall.ogg");
 	shootFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/shoot.wav");
 	jumpFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/jump.wav");
-	Engine::GetInstance().scene.get()->SaveState();
 
 	return true;
 }
@@ -86,20 +86,22 @@ bool Player::Update(float dt)
 	position.getX();
 
 	if (!isDead) {
-		// Move left
-		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_A) == KEY_REPEAT) {
-			flipSprite = true;
-			velocity.x = -speed * 16;
-			isRunning = true;
-			hflip = SDL_FLIP_HORIZONTAL;
-		}
+		if (!isShooting) {
+			// Move left
+			if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_A) == KEY_REPEAT) {
+				flipSprite = true;
+				velocity.x = -speed * 16;
+				isRunning = true;
+				hflip = SDL_FLIP_HORIZONTAL;
+			}
 
-		// Move right
-		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_D) == KEY_REPEAT) {
-			flipSprite = false;
-			velocity.x = speed * 16;
-			isRunning = true;
-			hflip = SDL_FLIP_NONE;
+			// Move right
+			if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_D) == KEY_REPEAT) {
+				flipSprite = false;
+				velocity.x = speed * 16;
+				isRunning = true;
+				hflip = SDL_FLIP_NONE;
+			}
 		}
 
 		// Jump
@@ -125,6 +127,21 @@ bool Player::Update(float dt)
 			bulletPosition.setX(bulletPosition.getX() + (GetDirection().getX() * 28));
 			Bullet* bullet = new Bullet();
 			bullet->SetDirection(GetDirection());  // Establecer la dirección de la bala
+			bullet->SetParameters(Engine::GetInstance().scene.get()->configParameters);
+			bullet->texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/player/bullet.png");
+			Engine::GetInstance().entityManager.get()->AddEntity(bullet);
+			bullet->Start();
+			bullet->SetPosition(bulletPosition);
+			Engine::GetInstance().audio.get()->PlayFx(shootFxId);
+		}
+
+		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_E) == KEY_REPEAT && !isShooting && !isJumping && !isFalling) {
+			isShooting = true;
+			currentAnimation = &shoot;
+			Vector2D bulletPosition = GetPosition();
+			bulletPosition.setY(bulletPosition.getY() - 28);
+			Bullet* bullet = new Bullet();
+			bullet->SetDirection(Vector2D(0, -1));  // Establecer la dirección de la bala hacia arriba
 			bullet->SetParameters(Engine::GetInstance().scene.get()->configParameters);
 			bullet->texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/player/bullet.png");
 			Engine::GetInstance().entityManager.get()->AddEntity(bullet);
@@ -230,7 +247,6 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 	{
 	case ColliderType::PLATFORM:
 		LOG("Collision PLATFORM");
-		//reset the jump flag when touching the ground
 		if (isFalling) {
 			isFalling = false;
 			isJumping = false;
@@ -239,7 +255,7 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 	case ColliderType::ITEM:
 		LOG("Collision ITEM");
 		Engine::GetInstance().audio.get()->PlayFx(pickCoinFxId);
-		Engine::GetInstance().physics.get()->DeletePhysBody(physB); // Deletes the body of the item from the physics world
+		Engine::GetInstance().physics.get()->DeletePhysBody(physB);
 		break;
 	case ColliderType::HAZARD:
 		if (!isDead && !godMode) {
@@ -271,7 +287,6 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 		break;
 	case ColliderType::CHECKPOINT:
 		LOG("Collision Checkpoint");
-		//reset the jump flag when touching the ground
 		if (isFalling) {
 			isFalling = false;
 			isJumping = false;
@@ -307,6 +322,9 @@ void Player::OnCollisionEnd(PhysBody* physA, PhysBody* physB)
 		LOG("Collision ENEMY");
 		break;
 	case ColliderType::VOID:
+		break;
+	case ColliderType::CHECKPOINT:
+		isFalling = true;
 		break;
 	case ColliderType::UNKNOWN:
 		LOG("End Collision UNKNOWN");

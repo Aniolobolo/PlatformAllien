@@ -10,13 +10,15 @@
 #include "Map.h"
 #include "EntityManager.h"
 
-Enemy::Enemy() : Entity(EntityType::ENEMY)
+Enemy::Enemy() : Entity(EntityType::ENEMY), pathfinding(nullptr), pbody(nullptr)
 {
 
 }
 
 Enemy::~Enemy() {
-	delete pathfinding;
+	if (pathfinding != nullptr) {
+		delete pathfinding;
+	}
 }
 
 bool Enemy::Awake() {
@@ -38,6 +40,12 @@ bool Enemy::Start() {
 
 	// Agregar física al objeto - inicializar el cuerpo físico
 	pbody = Engine::GetInstance().physics.get()->CreateCircle((int)position.getX() + texH / 4, (int)position.getY() + texH / 4, texH / 4, bodyType::DYNAMIC);
+
+	// Verificar si pbody se inicializó correctamente
+	if (pbody == nullptr) {
+		LOG("Error al crear el cuerpo físico del enemigo");
+		return false;
+	}
 
 	// Asignar tipo de colisionador
 	pbody->ctype = ColliderType::ENEMY;
@@ -61,7 +69,7 @@ bool Enemy::Start() {
 void Enemy::MoveTowardsTargetTile(float dt)
 {
 	// Asegurarse de que hay suficientes tiles en el camino para calcular el movimiento
-	if (pathfinding->pathTiles.size() < 2) return;
+	if (pathfinding == nullptr || pathfinding->pathTiles.size() < 2) return;
 
 	// Paso 1: Verificar si el path tiene más de 20 tiles
 	if (pathfinding->pathTiles.size() > 20) {
@@ -104,14 +112,13 @@ bool Enemy::Update(float dt)
 		pathfinding->PropagateAStar(SQUARED);
 	}
 
-	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F1) == KEY_DOWN){
+	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F1) == KEY_DOWN) {
 		draw = !draw;
 	}
-	
+
 	if (draw) {
 		pathfinding->DrawPath();
 	}
-
 
 	// Paso 3: Mover al enemigo hacia el penúltimo tile
 	MoveTowardsTargetTile(dt);
@@ -141,10 +148,11 @@ bool Enemy::Update(float dt)
 	return true;
 }
 
-
 bool Enemy::CleanUp()
 {
-	Engine::GetInstance().physics.get()->DeletePhysBody(pbody);
+	if (pbody != nullptr) {
+		Engine::GetInstance().physics.get()->DeletePhysBody(pbody);
+	}
 	return true;
 }
 
@@ -152,19 +160,29 @@ void Enemy::SetPosition(Vector2D pos) {
 	pos.setX(pos.getX() + texW / 4);
 	pos.setY(pos.getY() + texH / 4);
 	b2Vec2 bodyPos = b2Vec2(PIXEL_TO_METERS(pos.getX()), PIXEL_TO_METERS(pos.getY()));
-	pbody->body->SetTransform(bodyPos, 0);
+	if (pbody != nullptr) {
+		pbody->body->SetTransform(bodyPos, 0);
+	}
 }
 
 Vector2D Enemy::GetPosition() {
-	b2Vec2 bodyPos = pbody->body->GetTransform().p;
-	Vector2D pos = Vector2D(METERS_TO_PIXELS(bodyPos.x), METERS_TO_PIXELS(bodyPos.y));
-	return pos;
+	if (!isAlive) {
+		return Vector2D(0, 0);
+	}
+	if (pbody != nullptr) {
+		b2Vec2 bodyPos = pbody->body->GetTransform().p;
+		Vector2D pos = Vector2D(METERS_TO_PIXELS(bodyPos.x), METERS_TO_PIXELS(bodyPos.y));
+		return pos;
+	}
+	return Vector2D(0, 0);
 }
 
 void Enemy::ResetPath() {
 	Vector2D pos = GetPosition();
 	Vector2D tilePos = Engine::GetInstance().map.get()->WorldToMap(pos.getX(), pos.getY());
-	pathfinding->ResetPath(tilePos);
+	if (pathfinding != nullptr) {
+		pathfinding->ResetPath(tilePos);
+	}
 }
 
 void Enemy::OnCollision(PhysBody* physA, PhysBody* physB) {
@@ -172,11 +190,13 @@ void Enemy::OnCollision(PhysBody* physA, PhysBody* physB) {
 	{
 	case ColliderType::BULLET:
 		LOG("Collided with hazard - DESTROY");
-		Engine::GetInstance().entityManager.get()->DestroyEntity(this);
 		isAlive = false;
+		Engine::GetInstance().entityManager.get()->DestroyEntity(this);
+		
 		break;
 	}
 }
+
 void Enemy::OnCollisionEnd(PhysBody* physA, PhysBody* physB)
 {
 	switch (physB->ctype)

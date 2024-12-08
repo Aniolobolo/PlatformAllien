@@ -46,10 +46,6 @@ bool Bullet::Start() {
         LOG("Error: PhysBody creation failed!");
         return false;
     }
-    else {
-        LOG("PhysBody created successfully at position: (%f, %f)", position.getX(), position.getY());
-    }
-
     pbody->listener = this;
     pbody->body->SetGravityScale(0);
 
@@ -123,7 +119,7 @@ void Bullet::OnCollision(PhysBody* physA, PhysBody* physB) {
         isAlive = false;
         Engine::GetInstance().entityManager.get()->DestroyEntity(this);
         break;
-    }
+    }   
 }
 
 void Bullet::OnCollisionEnd(PhysBody* physA, PhysBody* physB) {

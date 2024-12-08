@@ -7,53 +7,50 @@
 
 struct SDL_Texture;
 
+// Declarar el enum BulletType
+enum class BulletType {
+    HORIZONTAL,
+    VERTICAL
+};
+
 class Bullet : public Entity
 {
 public:
+    Bullet(BulletType type = BulletType::HORIZONTAL);  // Modificar el constructor para aceptar BulletType
+    virtual ~Bullet();
 
-	Bullet();
-	virtual ~Bullet();
+    bool Awake();
+    bool Start();
+    bool Update(float dt);
+    bool CleanUp();
 
-	bool Awake();
+    void SetParameters(pugi::xml_node parameters) {
+        this->parameters = parameters;
+    }
 
-	bool Start();
+    void SetPosition(Vector2D pos);
+    Vector2D GetPosition();
+    void SetDirection(const Vector2D& dir) { direction = dir; }
 
-	bool Update(float dt);
+    void OnCollision(PhysBody* physA, PhysBody* physB);
+    void OnCollisionEnd(PhysBody* physA, PhysBody* physB);
 
-	bool CleanUp();
+    bool isAlive = true;
+    int distCounter = 0;
 
-	void SetParameters(pugi::xml_node parameters) {
-		this->parameters = parameters;
-	}
+    SDL_RendererFlip hflip = SDL_FLIP_NONE;
 
-	void SetPosition(Vector2D pos);
-
-	Vector2D GetPosition();
-	void SetDirection(const Vector2D& dir) { direction = dir; }
-
-
-
-	void OnCollision(PhysBody* physA, PhysBody* physB);
-	void OnCollisionEnd(PhysBody* physA, PhysBody* physB);
-
-	bool isAlive = true;
-	int distCounter = 0;
-
-	SDL_RendererFlip hflip = SDL_FLIP_NONE;
 public:
-	SDL_Texture* texture;
+    SDL_Texture* texture;
 
 private:
-	bool flipSprite = false;
-
-	
-	const char* texturePath;
-
-	pugi::xml_node parameters;
-	int texW, texH;
-	Vector2D direction;
-
-	Animation* currentAnimation = nullptr;
-	Animation travel;
-	PhysBody* pbody;
+    bool flipSprite = false;
+    const char* texturePath;
+    pugi::xml_node parameters;
+    int texW, texH;
+    Vector2D direction;
+    Animation* currentAnimation = nullptr;
+    Animation travel;
+    PhysBody* pbody;
+    BulletType type;  // Nuevo miembro para el tipo de bala
 };

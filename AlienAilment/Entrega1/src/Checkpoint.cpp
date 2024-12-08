@@ -54,7 +54,7 @@ bool Checkpoint::Update(float dt)
 
 	b2Transform pbodyPos = pbody->body->GetTransform();
 	position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texH / 2);
-	position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH + 15);
+	position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH + 20);
 
 	// Dibujar al enemigo en la pantalla y actualizar su animación
 	Engine::GetInstance().render.get()->DrawTexture(texture, (int)position.getX(), (int)position.getY(), &currentAnimation->GetCurrentFrame());

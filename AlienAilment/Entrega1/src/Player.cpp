@@ -40,6 +40,7 @@ bool Player::Start() {
 	jump.LoadAnimations(parameters.child("animations").child("jump"));
 	fall.LoadAnimations(parameters.child("animations").child("fall"));
 	shoot.LoadAnimations(parameters.child("animations").child("shoot"));
+	shootup.LoadAnimations(parameters.child("animations").child("shootup"));
 	die.LoadAnimations(parameters.child("animations").child("die"));
 	currentAnimation = &idle;
 
@@ -74,6 +75,7 @@ void Player::ResetPlayerPosition() {
 	currentAnimation = &idle;
 	pbody->body->SetLinearVelocity(b2Vec2(0, -0.1f));
 	Engine::GetInstance().scene.get()->LoadState();
+	Engine::GetInstance().render.get()->camera.x = 500 - position.getX();
 	respawn = false;
 }
 
@@ -105,7 +107,7 @@ bool Player::Update(float dt)
 		}
 
 		// Jump
-		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_SPACE) == KEY_DOWN && !isJumping && !isFalling) {
+		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_SPACE) == KEY_DOWN && !isJumping && !isFalling && !isShooting) {
 			Engine::GetInstance().audio.get()->PlayFx(jumpFxId);
 			pbody->body->ApplyLinearImpulseToCenter(b2Vec2(0, -jumpForce), true);
 			isJumping = true;
@@ -119,41 +121,55 @@ bool Player::Update(float dt)
 			isFalling = false;
 		}
 
-		// Shoot
+		// Shoot horizontally
 		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_Q) == KEY_REPEAT && !isShooting && !isJumping && !isFalling) {
 			isShooting = true;
 			currentAnimation = &shoot;
 			Vector2D bulletPosition = GetPosition();
 			bulletPosition.setX(bulletPosition.getX() + (GetDirection().getX() * 28));
-			Bullet* bullet = new Bullet();
+			Bullet* bullet = new Bullet(BulletType::HORIZONTAL);
 			bullet->SetDirection(GetDirection());  // Establecer la dirección de la bala
 			bullet->SetParameters(Engine::GetInstance().scene.get()->configParameters);
-			bullet->texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/player/bullet.png");
+			bullet->texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/player/bullet2.png");
 			Engine::GetInstance().entityManager.get()->AddEntity(bullet);
 			bullet->Start();
 			bullet->SetPosition(bulletPosition);
 			Engine::GetInstance().audio.get()->PlayFx(shootFxId);
 		}
 
+		// Shoot vertically
 		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_E) == KEY_REPEAT && !isShooting && !isJumping && !isFalling) {
 			isShooting = true;
-			currentAnimation = &shoot;
+			currentAnimation = &shootup;
 			Vector2D bulletPosition = GetPosition();
-			bulletPosition.setY(bulletPosition.getY() - 28);
-			Bullet* bullet = new Bullet();
-			bullet->SetDirection(Vector2D(0, -1));  // Establecer la dirección de la bala hacia arriba
+			bulletPosition.setY(bulletPosition.getY() - 28);  // Ajustar la posición inicial de la bala vertical
+
+			// Ajustar la posición inicial de la bala dependiendo de la dirección en la que el jugador esté mirando
+			if (flipSprite) {
+				bulletPosition.setX(bulletPosition.getX() - 12);  // Offset hacia la izquierda
+			}
+			else {
+				bulletPosition.setX(bulletPosition.getX() + 12);  // Offset hacia la derecha
+			}
+
+			Bullet* bullet = new Bullet(BulletType::VERTICAL);
+			bullet->SetDirection(Vector2D(0, -1));  // Establecer la dirección de la bala vertical
 			bullet->SetParameters(Engine::GetInstance().scene.get()->configParameters);
-			bullet->texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/player/bullet.png");
+			bullet->texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/player/bullet3.png");
 			Engine::GetInstance().entityManager.get()->AddEntity(bullet);
 			bullet->Start();
 			bullet->SetPosition(bulletPosition);
 			Engine::GetInstance().audio.get()->PlayFx(shootFxId);
 		}
-
 
 		if (isShooting && currentAnimation == &shoot && currentAnimation->HasFinished()) {
 			isShooting = false;
 			shoot.Reset();
+		}
+		
+		if (isShooting && currentAnimation == &shootup && currentAnimation->HasFinished()) {
+			isShooting = false;
+			shootup.Reset();
 		}
 
 		float verticalVelocity = pbody->body->GetLinearVelocity().y;
@@ -175,7 +191,7 @@ bool Player::Update(float dt)
 
 		// Update animation state
 		if (isShooting) {
-			currentAnimation = &shoot;
+			
 		}
 		else if (isJumping && !isFalling) {
 			currentAnimation = &jump;

@@ -53,12 +53,6 @@ bool Scene::Awake()
 		enemyFList.push_back(enemyF);
 	}
 
-	/*for (bulletNode = configParameters.child("entities").child("bullets").child("bullet"); bulletNode; bulletNode = bulletNode.next_sibling("bullet"))
-	{
-		Bullet* bullet = (Bullet*)Engine::GetInstance().entityManager->CreateEntity(EntityType::BULLET);
-		bullet->SetParameters(bulletNode);
-		bulletList.push_back(bullet);
-	}*/
 	return ret;
 }
 
@@ -87,9 +81,10 @@ bool Scene::PreUpdate()
 // Called each loop iteration
 bool Scene::Update(float dt)
 {
-	if (player->position.getX() >= 525 && player->position.getX() <= 3370) {
+	// Si el jugador no está en respawn y está dentro de los intervalos, mueve la cámara
+	/*if (!player->respawn && player->position.getX() >= 525 && player->position.getX() <= 3370) {
 		Engine::GetInstance().render.get()->camera.x = 500 - player->position.getX();
-	}
+	}*/
 	
 	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_H) == KEY_DOWN) {
 		areControlsVisible = !areControlsVisible;

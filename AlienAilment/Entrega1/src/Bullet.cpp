@@ -11,17 +11,19 @@
 #include "EntityManager.h"
 #include "Player.h"
 
-Bullet::Bullet()
+Bullet::Bullet(BulletType type)
     : Entity(EntityType::BULLET),
     direction(1, 0),
     pbody(nullptr),
     texW(0),
     texH(0),
     texture(nullptr),
-    texturePath("")  // Inicializar todas las variables miembro
+    texturePath(""),
+    type(type)  // Inicializar el tipo de bala
 {
     name = "bullet";
 }
+
 
 Bullet::~Bullet() {}
 
@@ -31,7 +33,13 @@ bool Bullet::Awake() {
 
 bool Bullet::Start() {
     // Inicializar texturas
-    texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/player/bullet2.png");
+    if (BulletType::HORIZONTAL == type) {
+        texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/player/bullet2.png");
+    }
+    else if (BulletType::VERTICAL == type) {
+        texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/player/bullet3.png");
+    }
+   
     position.setX(static_cast<float>(parameters.attribute("x").as_int()));  // Conversión a float
     position.setY(static_cast<float>(parameters.attribute("y").as_int()));  // Conversión a float
     texW = parameters.attribute("w").as_int();
@@ -58,24 +66,28 @@ bool Bullet::Start() {
 bool Bullet::Update(float dt) {
     if (pbody == nullptr) {
         LOG("Error: PhysBody creation failed!");
-        return false;  // O realizar alguna otra acción para manejar el error
+        return false;
     }
 
     b2Vec2 velocity = pbody->body->GetLinearVelocity();
-    velocity.x = direction.getX() * 5.0f;  // Velocidad constante en la dirección de la bala
+    if (type == BulletType::HORIZONTAL) {
+        velocity.x = direction.getX() * 5.0f;  // Velocidad constante en la dirección horizontal
+        velocity.y = 0.0f;  // Sin movimiento vertical
+    }
+    else if (type == BulletType::VERTICAL) {
+        velocity.x = 0.0f;  // Sin movimiento horizontal
+        velocity.y = direction.getY() * 5.0f;  // Velocidad constante en la dirección vertical
+    }
     pbody->body->SetLinearVelocity(velocity);
 
     b2Transform pbodyPos = pbody->body->GetTransform();
-    position.setX(static_cast<float>(METERS_TO_PIXELS(pbodyPos.p.x)) - 12.0f);  // Conversión a float
-    position.setY(static_cast<float>(METERS_TO_PIXELS(pbodyPos.p.y)) - 12.0f);  // Conversión a float
+    position.setX(static_cast<float>(METERS_TO_PIXELS(pbodyPos.p.x)) - 12.0f);
+    position.setY(static_cast<float>(METERS_TO_PIXELS(pbodyPos.p.y)) - 12.0f);
 
-    // Dibujar al enemigo en la pantalla y actualizar su animación
     if (direction.getX() < 0) {
-        // Si la dirección es hacia la izquierda, voltear el sprite horizontalmente
         Engine::GetInstance().render.get()->DrawTexture(texture, static_cast<int>(position.getX()), static_cast<int>(position.getY()), nullptr, SDL_FLIP_HORIZONTAL);
     }
     else {
-        // Si la dirección es hacia la derecha, dibujar el sprite normalmente
         Engine::GetInstance().render.get()->DrawTexture(texture, static_cast<int>(position.getX()), static_cast<int>(position.getY()));
     }
     currentAnimation->Update();

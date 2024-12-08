@@ -5,7 +5,7 @@
 		<maxFrameDuration value="16" />
 	</engine>
 	<render>
-		<vsync value="false" />
+		<vsync value="true" />
 	</render>
 	<window>
 		<resolution width="1280" height="720" scale="1" />
@@ -17,7 +17,7 @@
 	<scene>
 		<map path="Assets/Maps/" name="Nivel1.tmx" />
 		<entities>
-			<player x="2519" y="273" w="64" h="64" texture="Assets/Textures/player/PlayerAnimations.png">
+			<player x="135" y="395" w="64" h="64" texture="Assets/Textures/player/PlayerAnimations.png">
 				<animations>
 					<idle loop="true" speed="0.3">
 						<frame x="0" y="0" w="64" h="64" />
@@ -65,6 +65,14 @@
 						<frame x="64" y="256" w="64" h="64" />
 						<frame x="128" y="256" w="64" h="64" />
 					</shoot>
+					<shootup loop="false" speed="0.2">
+						<frame x="192" y="256" w="64" h="64" />
+						<frame x="256" y="256" w="64" h="64" />
+						<frame x="320" y="256" w="64" h="64" />
+						<frame x="384" y="256" w="64" h="64" />
+						<frame x="448" y="256" w="64" h="64" />
+						<frame x="512" y="256" w="64" h="64" />
+					</shootup>
 					<die loop="false" speed="0.1">
 						<frame x="0" y="320" w="64" h="64" />
 						<frame x="64" y="320" w="64" h="64" />
@@ -155,7 +163,7 @@
 				</enemyFloor>
 			</enemies>
 			<checkpoints>
-				<checkpoint name="checkpoint" x="2464" y="285" w="208" h="208" texture="Assets/Textures/props/checkpoint.png" gravity="true">
+				<checkpoint name="checkpoint" x="2460" y="280" w="208" h="208" texture="Assets/Textures/props/checkpoint.png" gravity="true">
 					<animations>
 						<idle loop="true" speed="0.1">
 							<frame x="0" y="0" w="208" h="208" />

@@ -75,7 +75,6 @@ void Player::ResetPlayerPosition() {
 	currentAnimation = &idle;
 	pbody->body->SetLinearVelocity(b2Vec2(0, -0.1f));
 	Engine::GetInstance().scene.get()->LoadState();
-	Engine::GetInstance().render.get()->camera.x = 500 - position.getX();
 	respawn = false;
 }
 

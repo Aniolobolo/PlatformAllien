@@ -17,7 +17,7 @@
 	<scene>
 		<map path="Assets/Maps/" name="Nivel1.tmx" />
 		<entities>
-			<player x="135" y="395" w="64" h="64" texture="Assets/Textures/player/PlayerAnimations.png">
+			<player x="200" y="520" w="64" h="64" texture="Assets/Textures/player/PlayerAnimations.png">
 				<animations>
 					<idle loop="true" speed="0.3">
 						<frame x="0" y="0" w="64" h="64" />
@@ -89,7 +89,7 @@
 				</animations>
 			</player>
 			<enemies>
-				<enemy name="enemyFly" x="700" y="270" w="64" h="64" texture="Assets/Textures/enemies/EnemyFlyAnimations.png" gravity="true">
+				<enemy name="enemyFly" x="700" y="270" w="64" h="64" texture="Assets/Textures/enemies/EnemyFlyAnimations.png" gravity="true" dead="false">
 					<animations>
 						<idle loop="true" speed="0.2">
 							<frame x="0" y="0" w="64" h="64" />
@@ -101,7 +101,7 @@
 						</idle>
 					</animations>
 				</enemy>
-				<enemy name="enemyFly2" x="2375" y="500" w="64" h="64" texture="Assets/Textures/enemies/EnemyFlyAnimations.png" gravity="true">
+				<enemy name="enemyFly2" x="2375" y="500" w="64" h="64" texture="Assets/Textures/enemies/EnemyFlyAnimations.png" gravity="true" dead="false">
 					<animations>
 						<idle loop="true" speed="0.2">
 							<frame x="0" y="0" w="64" h="64" />
@@ -113,7 +113,7 @@
 						</idle>
 					</animations>
 				</enemy>
-				<enemyFloor name="enemyFloor" x="580" y="600" w="64" h="64" texture="Assets/Textures/enemies/EnemyGroundAnimations.png" gravity="true">
+				<enemyFloor name="enemyFloor" x="580" y="600" w="64" h="64" texture="Assets/Textures/enemies/EnemyGroundAnimations.png" gravity="true" dead="false">
 					<animations>
 						<move loop="true" speed="0.2">
 							<frame x="0" y="64" w="64" h="64" />
@@ -137,7 +137,7 @@
 						</idle>
 					</animations>
 				</enemyFloor>
-				<enemyFloor name="enemyFloor2" x="3330" y="370" w="64" h="64" texture="Assets/Textures/enemies/EnemyGroundAnimations.png" gravity="true">
+				<enemyFloor name="enemyFloor2" x="3330" y="370" w="64" h="64" texture="Assets/Textures/enemies/EnemyGroundAnimations.png" gravity="true" dead="false">
 					<animations>
 						<move loop="true" speed="0.2">
 							<frame x="0" y="64" w="64" h="64" />

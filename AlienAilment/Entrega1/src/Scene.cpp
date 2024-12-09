@@ -81,10 +81,13 @@ bool Scene::PreUpdate()
 // Called each loop iteration
 bool Scene::Update(float dt)
 {
-	// Si el jugador no está en respawn y está dentro de los intervalos, mueve la cámara
-	/*if (!player->respawn && player->position.getX() >= 525 && player->position.getX() <= 3370) {
+	// Si está dentro de los intervalos, mueve la cámara
+	if (player->position.getX() >= 525 && player->position.getX() <= 3370) {
 		Engine::GetInstance().render.get()->camera.x = 500 - player->position.getX();
-	}*/
+	}
+	else if (!player->isDead) {
+		Engine::GetInstance().render.get()->camera.x = 500 - player->position.getX();
+	}
 	
 	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_H) == KEY_DOWN) {
 		areControlsVisible = !areControlsVisible;
@@ -163,9 +166,11 @@ void Scene::LoadState() {
 	//Read XML and restore information
 
 	//Player position
-	Vector2D playerPos = Vector2D(sceneNode.child("entities").child("player").attribute("x").as_int(),
-		sceneNode.child("entities").child("player").attribute("y").as_int());
+	Vector2D playerPos = Vector2D(sceneNode.child("entities").child("player").attribute("x").as_int() - 32,
+		sceneNode.child("entities").child("player").attribute("y").as_int() - 32);
 	player->SetPosition(playerPos);
+
+
 
 	//enemies
 
@@ -188,8 +193,8 @@ void Scene::SaveState() {
 	//Save info to XML 
 
 	//Player position
-	sceneNode.child("entities").child("player").attribute("x").set_value(player->GetPosition().getX() - 16);
-	sceneNode.child("entities").child("player").attribute("y").set_value(player->GetPosition().getY() - 32);
+	sceneNode.child("entities").child("player").attribute("x").set_value(player->GetPosition().getX());
+	sceneNode.child("entities").child("player").attribute("y").set_value(player->GetPosition().getY());
 
 	//enemies
 	// ...

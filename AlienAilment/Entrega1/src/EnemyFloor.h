@@ -48,10 +48,12 @@ private:
 	int currentPathIndex = 0;  // Índice actual en la ruta
 	float ENEMY_SPEED = 50.0f;
 
+	float jumpForce = 3.0f;
 
 	bool flipSprite = false;
 	bool draw = false;
 	bool isOnFloor = false;
+	bool isJumping = false;
 
 	SDL_Texture* texture;
 	const char* texturePath;

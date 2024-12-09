@@ -127,8 +127,12 @@ bool EnemyFloor::Update(float dt)
     }
 
     // Mover al enemigo hacia el penúltimo tile
-    MoveTowardsTargetTile(dt);
+    
+    if (isOnFloor) {
+        MoveTowardsTargetTile(dt);
+        pbody->body->ApplyLinearImpulseToCenter(b2Vec2(0, -jumpForce), true);
 
+    }
     // Obtener la velocidad actual del cuerpo físico
     float velocityX = pbody->body->GetLinearVelocity().x;
 

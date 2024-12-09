@@ -119,6 +119,9 @@ bool Scene::PostUpdate()
     if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F5) == KEY_DOWN)
         SaveState();
 
+    if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F3) == KEY_DOWN)
+        player->SetPosition(Vector2D(180, 500));
+
 	// Comprobar si el jugador ha llegado al checkpoint
     if (!hasReachedCheckpoint) {
         if (checkP->hasSounded) {

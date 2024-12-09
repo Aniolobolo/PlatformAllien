@@ -37,7 +37,6 @@ public:
 	bool isAlive() const { return isalive; }
 	void SetAlive();
 	void SetDead();
-	void UpdateConfigFile(bool alive);
 	int distCounter = 0;
 
 	SDL_RendererFlip hflip = SDL_FLIP_NONE;
@@ -58,6 +57,8 @@ private:
 	bool isOnFloor = false;
 	bool isJumping = false;
 	bool isFalling;
+
+	int deathSfx;
 
 	SDL_Texture* texture;
 	const char* texturePath;

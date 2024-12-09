@@ -54,6 +54,8 @@ private:
 	bool flipSprite = false;
 	bool draw = false;
 
+	int deathSfx;
+
 	SDL_Texture* texture;
 	const char* texturePath;
 	int texW, texH;

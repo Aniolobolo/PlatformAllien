@@ -54,6 +54,8 @@ bool Enemy::Start() {
 	// Configurar la gravedad del cuerpo
 	if (!parameters.attribute("gravity").as_bool()) pbody->body->SetGravityScale(0);
 
+	deathSfx = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/enemy_death.wav");
+
 	// Establecer la velocidad inicial a cero para evitar movimiento no deseado
 	pbody->body->SetLinearVelocity(b2Vec2(0, 0));
 
@@ -112,7 +114,7 @@ bool Enemy::Update(float dt)
 		pathfinding->PropagateAStar(SQUARED);
 	}
 
-	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F) == KEY_DOWN) {
+	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F9) == KEY_DOWN) {
 		draw = !draw;
 	}
 
@@ -192,6 +194,7 @@ void Enemy::OnCollision(PhysBody* physA, PhysBody* physB) {
 	case ColliderType::VOID:
 		LOG("Collided with hazard - DESTROY");
 		SetDead();
+		Engine::GetInstance().audio.get()->PlayFx(deathSfx);
 		Engine::GetInstance().entityManager.get()->DestroyEntity(this);
 		break;
 	}

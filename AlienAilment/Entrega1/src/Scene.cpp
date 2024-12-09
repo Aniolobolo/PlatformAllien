@@ -68,7 +68,7 @@ bool Scene::Start()
 
 	saveFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/save.wav");
 
-	int musicVolume = 0;
+	int musicVolume = 40;
 	Mix_VolumeMusic(musicVolume);
 
 	return true;
@@ -147,90 +147,112 @@ Vector2D Scene::GetPlayerPosition()
 
 // L15 TODO 1: Implement the Load function
 void Scene::LoadState() {
-	pugi::xml_document loadFile;
-	pugi::xml_parse_result result = loadFile.load_file("config.xml");
+    pugi::xml_document loadFile;
+    pugi::xml_parse_result result = loadFile.load_file("config.xml");
 
-	if (result == NULL) {
-		LOG("Could not load file. Pugi error: %s", result.description());
-		return;
-	}
+    if (!result) {
+        LOG("Could not load file. Pugi error: %s", result.description());
+        return;
+    }
 
-	pugi::xml_node sceneNode = loadFile.child("config").child("scene");
+    pugi::xml_node sceneNode = loadFile.child("config").child("scene");
 
-	// Leer la posición del jugador
-	Vector2D playerPos = Vector2D(static_cast<float>(sceneNode.child("entities").child("player").attribute("x").as_int() - 32),
-		static_cast<float>(sceneNode.child("entities").child("player").attribute("y").as_int() - 32));
-	player->SetPosition(playerPos);
+    // Cargar la posición del jugador
+    pugi::xml_node playerNode = sceneNode.child("entities").child("player");
+    if (playerNode) {
+        Vector2D playerPos(
+            static_cast<float>(playerNode.attribute("x").as_int() - 32),
+            static_cast<float>(playerNode.attribute("y").as_int() - 32)
+        );
+        player->SetPosition(playerPos);
+    }
 
-	//// Enemigos
-	//pugi::xml_node enemiesNode = sceneNode.child("entities").child("enemies");
-	//for (pugi::xml_node enemyNode = enemiesNode.child("enemy"); enemyNode; enemyNode = enemyNode.next_sibling("enemy")) {
-	//	float x = static_cast<float>(enemyNode.attribute("x").as_int());
-	//	float y = static_cast<float>(enemyNode.attribute("y").as_int());
-	//	bool isAlive = enemyNode.attribute("alive").as_bool();
-	//	Enemy* enemy = (Enemy*)Engine::GetInstance().entityManager->CreateEntity(EntityType::ENEMY);
-	//	enemy->SetPosition(Vector2D(x, y));
-	//	if (isAlive) {
-	//		enemy->SetAlive();
-	//	}
-	//	else {
-	//		enemy->SetDead();
-	//	}
-	//	enemyList.push_back(enemy);
-	//}
+    // Cargar enemigos
+    int i = 0;
+    for (pugi::xml_node enemyNode = sceneNode.child("entities").child("enemies").child("enemy");
+        enemyNode;
+        enemyNode = enemyNode.next_sibling("enemy")) {
+        if (i < enemyList.size()) { // Actualizar enemigo existente
+            float x = static_cast<float>(enemyNode.attribute("x").as_int() - 32);
+            float y = static_cast<float>(enemyNode.attribute("y").as_int() - 32);
+            bool isAlive = enemyNode.attribute("alive").as_bool();
 
-	//// Enemigos Floor
-	//for (pugi::xml_node enemyFNode = enemiesNode.child("enemyFloor"); enemyFNode; enemyFNode = enemyFNode.next_sibling("enemyFloor")) {
-	//	float x = static_cast<float>(enemyFNode.attribute("x").as_int());
-	//	float y = static_cast<float>(enemyFNode.attribute("y").as_int());
-	//	bool isAlive = enemyFNode.attribute("alive").as_bool();
-	//	EnemyFloor* enemyF = (EnemyFloor*)Engine::GetInstance().entityManager->CreateEntity(EntityType::ENEMYFLOOR);
-	//	enemyF->SetPosition(Vector2D(x, y));
-	//	if (isAlive) {
-	//		enemyF->SetAlive();
-	//	}
-	//	else {
-	//		enemyF->SetDead();
-	//	}
-	//	enemyFList.push_back(enemyF);
-	//}
+            enemyList[i]->SetPosition(Vector2D(x, y));
+            if (isAlive) {
+                enemyList[i]->SetAlive();
+            }
+            else {
+                enemyList[i]->SetDead();
+            }
+            i++;
+        }
+    }
+
+    // Cargar enemigos en el suelo
+    i = 0;
+    for (pugi::xml_node enemyFNode = sceneNode.child("entities").child("enemies").child("enemyFloor");
+        enemyFNode;
+        enemyFNode = enemyFNode.next_sibling("enemyFloor")) {
+        if (i < enemyFList.size()) { // Actualizar enemigo existente
+            float x = static_cast<float>(enemyFNode.attribute("x").as_int() - 32);
+            float y = static_cast<float>(enemyFNode.attribute("y").as_int() - 32);
+            bool isAlive = enemyFNode.attribute("alive").as_bool();
+
+            enemyFList[i]->SetPosition(Vector2D(x, y));
+            if (isAlive) {
+                enemyFList[i]->SetAlive();
+            }
+            else {
+                enemyFList[i]->SetDead();
+            }
+            i++;
+        }
+    }
 }
 
-// L15 TODO 2: Implement the Save function
 void Scene::SaveState() {
-	pugi::xml_document saveFile;
-	pugi::xml_parse_result result = saveFile.load_file("config.xml");
+    pugi::xml_document saveFile;
+    pugi::xml_parse_result result = saveFile.load_file("config.xml");
 
-	if (result == NULL) {
-		LOG("Could not load file. Pugi error: %s", result.description());
-		return;
-	}
+    if (!result) {
+        LOG("Could not load file. Pugi error: %s", result.description());
+        return;
+    }
 
-	pugi::xml_node sceneNode = saveFile.child("config").child("scene");
+    pugi::xml_node sceneNode = saveFile.child("config").child("scene");
 
-	// Guardar la posición del jugador
-	sceneNode.child("entities").child("player").attribute("x").set_value(player->GetPosition().getX());
-	sceneNode.child("entities").child("player").attribute("y").set_value(player->GetPosition().getY());
+    // Guardar la posición del jugador
+    pugi::xml_node playerNode = sceneNode.child("entities").child("player");
+    if (playerNode) {
+        playerNode.attribute("x").set_value(player->GetPosition().getX());
+        playerNode.attribute("y").set_value(player->GetPosition().getY());
+    }
 
-	// Guardar enemigos
-	//pugi::xml_node enemiesNode = sceneNode.child("entities").child("enemies");
-	//for (auto enemy : enemyList) {
-	//	pugi::xml_node enemyNode = enemiesNode.append_child("enemy");
-	//	enemyNode.append_attribute("x") = enemy->GetPosition().getX();
-	//	enemyNode.append_attribute("y") = enemy->GetPosition().getY();
-	//	enemyNode.append_attribute("alive") = enemy->isAlive(); // Usar la función isAlive
-	//}
+    // Guardar enemigos
+    pugi::xml_node enemiesNode = sceneNode.child("entities").child("enemies");
+    int i = 0;
+    for (pugi::xml_node enemyNode = enemiesNode.child("enemy"); enemyNode; enemyNode = enemyNode.next_sibling("enemy")) {
+        if (i < enemyList.size()) { // Actualizar enemigo existente
+            enemyNode.attribute("x").set_value(enemyList[i]->GetPosition().getX());
+            enemyNode.attribute("y").set_value(enemyList[i]->GetPosition().getY());
+            enemyNode.attribute("alive").set_value(enemyList[i]->isAlive());
+            i++;
+        }
+    }
 
-	// Guardar enemigos Floor
-	//for (auto enemyF : enemyFList) {
-	//	pugi::xml_node enemyFNode = enemiesNode.append_child("enemyFloor");
-	//	enemyFNode.append_attribute("x") = enemyF->GetPosition().getX();
-	//	enemyFNode.append_attribute("y") = enemyF->GetPosition().getY();
-	//	enemyFNode.append_attribute("alive") = enemyF->isAlive(); // Usar la función isAlive
-	//}
+    // Guardar enemigos en el suelo
+    i = 0;
+    for (pugi::xml_node enemyFNode = enemiesNode.child("enemyFloor"); enemyFNode; enemyFNode = enemyFNode.next_sibling("enemyFloor")) {
+        if (i < enemyFList.size()) { // Actualizar enemigo existente
+            enemyFNode.attribute("x").set_value(enemyFList[i]->GetPosition().getX());
+            enemyFNode.attribute("y").set_value(enemyFList[i]->GetPosition().getY());
+            enemyFNode.attribute("alive").set_value(enemyFList[i]->isAlive());
+            i++;
+        }
+    }
 
-	Engine::GetInstance().audio.get()->PlayFx(saveFxId);
+    Engine::GetInstance().audio.get()->PlayFx(saveFxId);
 
-	// Guardar las modificaciones en el archivo XML
-	saveFile.save_file("config.xml");
+    // Guardar las modificaciones en el archivo XML
+    saveFile.save_file("config.xml");
 }

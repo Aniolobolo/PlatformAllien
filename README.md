@@ -31,6 +31,7 @@ F11-->Toggle FPS
 
 H-->Help menu
 
+F3-->Go to the start of the level
 
 Features:
 

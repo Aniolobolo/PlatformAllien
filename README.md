@@ -7,21 +7,29 @@ A--> Move left
 
 D--> Move right
 
+Q--> Shoot horizontal
+
+E--> Shoot vertical
+
 SpaceBar--> Jump
 
 Debug:
 
-F1-->show collisions
+F5-->Save
 
-F2-->God mode
+F6-->Load
 
-F3-->Die
+F7-->VSync
 
-F4-->toggle fps
+F8-->Die
 
-F5-->Vsync
+F9-->Show collisions
 
-H-->Help menú
+F10-->GodMode
+
+F11-->Toggle FPS
+
+H-->Help menu
 
 
 Features:
@@ -35,3 +43,11 @@ Music
 Sound effects
 
 Animations
+
+2 enemy types: Flying and Walkingç
+
+Checkpoint
+
+Save&Load progress
+
+

@@ -215,7 +215,7 @@ bool Player::Update(float dt)
 	}
 
 	//godmode
-	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F2) == KEY_DOWN) {
+	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F10) == KEY_DOWN) {
 		godMode = !godMode;
 		if (godMode) {
 			LOG("God mode on");
@@ -227,7 +227,7 @@ bool Player::Update(float dt)
 	}
 
 	//die
-	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F3) == KEY_DOWN) {
+	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F8) == KEY_DOWN) {
 		Engine::GetInstance().audio.get()->PlayFx(dieFxId);
 		isDead = true;
 		currentAnimation = &die;

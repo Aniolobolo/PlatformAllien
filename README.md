@@ -44,7 +44,7 @@ Sound effects
 
 Animations
 
-2 enemy types: Flying and Walkingç
+2 enemy types: Flying and Walking
 
 Checkpoint
 

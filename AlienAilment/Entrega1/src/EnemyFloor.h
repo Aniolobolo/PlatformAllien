@@ -34,8 +34,10 @@ public:
 	void OnCollision(PhysBody* physA, PhysBody* physB);
 	void OnCollisionEnd(PhysBody* physA, PhysBody* physB);
 	void MoveTowardsTargetTile(float dt);
-
-	bool isAlive = true;
+	bool isAlive() const { return isalive; }
+	void SetAlive();
+	void SetDead();
+	void UpdateConfigFile(bool alive);
 	int distCounter = 0;
 
 	SDL_RendererFlip hflip = SDL_FLIP_NONE;
@@ -50,10 +52,12 @@ private:
 
 	float jumpForce = 3.0f;
 
+	bool isalive = true;
 	bool flipSprite = false;
 	bool draw = false;
 	bool isOnFloor = false;
 	bool isJumping = false;
+	bool isFalling;
 
 	SDL_Texture* texture;
 	const char* texturePath;

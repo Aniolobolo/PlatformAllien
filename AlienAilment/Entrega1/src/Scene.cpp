@@ -12,7 +12,6 @@
 #include "Map.h"
 #include "Item.h"
 
-
 Scene::Scene() : Module()
 {
 	name = "scene";
@@ -32,10 +31,10 @@ bool Scene::Awake()
 	//L04: TODO 3b: Instantiate the player using the entity manager
 	player = (Player*)Engine::GetInstance().entityManager->CreateEntity(EntityType::PLAYER);
 	player->SetParameters(configParameters.child("entities").child("player"));
-	
-	Item* item = (Item*) Engine::GetInstance().entityManager->CreateEntity(EntityType::ITEM);
+
+	Item* item = (Item*)Engine::GetInstance().entityManager->CreateEntity(EntityType::ITEM);
 	item->position = Vector2D(100, 500);
-	
+
 	pugi::xml_node checkpoint = configParameters.child("entities").child("checkpoints").child("checkpoint");
 	checkP = (Checkpoint*)Engine::GetInstance().entityManager->CreateEntity(EntityType::CHECKPOINT);
 	checkP->SetParameters(checkpoint);
@@ -66,7 +65,10 @@ bool Scene::Start()
 	Engine::GetInstance().map->Load(configParameters.child("map").attribute("path").as_string(), configParameters.child("map").attribute("name").as_string());
 
 	bgMusic = Engine::GetInstance().audio->PlayMusic("Assets/Audio/Music/music.ogg", 0);
-	int musicVolume = 40;
+
+	saveFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/save.wav");
+
+	int musicVolume = 0;
 	Mix_VolumeMusic(musicVolume);
 
 	return true;
@@ -83,11 +85,11 @@ bool Scene::Update(float dt)
 {
 	// Si el jugador no está en respawn y está dentro de los intervalos, mueve la cámara
 	Engine::GetInstance().render.get()->camera.x = 500 - player->position.getX();
-	
+
 	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_H) == KEY_DOWN) {
 		areControlsVisible = !areControlsVisible;
 	}
-	
+
 	if (areControlsVisible && controls != nullptr) {
 		int width, height;
 		Engine::GetInstance().textures->GetSize(controls, width, height);
@@ -95,7 +97,6 @@ bool Scene::Update(float dt)
 		Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
 
 		SDL_Rect dstRect = { windowWidth - width - 10, 10, width, height };
-
 
 		SDL_RenderCopy(Engine::GetInstance().render->renderer, controls, nullptr, &dstRect);
 	}
@@ -146,52 +147,90 @@ Vector2D Scene::GetPlayerPosition()
 
 // L15 TODO 1: Implement the Load function
 void Scene::LoadState() {
-
 	pugi::xml_document loadFile;
 	pugi::xml_parse_result result = loadFile.load_file("config.xml");
 
-	if (result == NULL)
-	{
+	if (result == NULL) {
 		LOG("Could not load file. Pugi error: %s", result.description());
 		return;
 	}
 
 	pugi::xml_node sceneNode = loadFile.child("config").child("scene");
 
-	//Read XML and restore information
-
-	//Player position
-	Vector2D playerPos = Vector2D(sceneNode.child("entities").child("player").attribute("x").as_int() - 32,
-		sceneNode.child("entities").child("player").attribute("y").as_int() - 32);
+	// Leer la posición del jugador
+	Vector2D playerPos = Vector2D(static_cast<float>(sceneNode.child("entities").child("player").attribute("x").as_int() - 32),
+		static_cast<float>(sceneNode.child("entities").child("player").attribute("y").as_int() - 32));
 	player->SetPosition(playerPos);
 
-	//enemies
+	//// Enemigos
+	//pugi::xml_node enemiesNode = sceneNode.child("entities").child("enemies");
+	//for (pugi::xml_node enemyNode = enemiesNode.child("enemy"); enemyNode; enemyNode = enemyNode.next_sibling("enemy")) {
+	//	float x = static_cast<float>(enemyNode.attribute("x").as_int());
+	//	float y = static_cast<float>(enemyNode.attribute("y").as_int());
+	//	bool isAlive = enemyNode.attribute("alive").as_bool();
+	//	Enemy* enemy = (Enemy*)Engine::GetInstance().entityManager->CreateEntity(EntityType::ENEMY);
+	//	enemy->SetPosition(Vector2D(x, y));
+	//	if (isAlive) {
+	//		enemy->SetAlive();
+	//	}
+	//	else {
+	//		enemy->SetDead();
+	//	}
+	//	enemyList.push_back(enemy);
+	//}
 
+	//// Enemigos Floor
+	//for (pugi::xml_node enemyFNode = enemiesNode.child("enemyFloor"); enemyFNode; enemyFNode = enemyFNode.next_sibling("enemyFloor")) {
+	//	float x = static_cast<float>(enemyFNode.attribute("x").as_int());
+	//	float y = static_cast<float>(enemyFNode.attribute("y").as_int());
+	//	bool isAlive = enemyFNode.attribute("alive").as_bool();
+	//	EnemyFloor* enemyF = (EnemyFloor*)Engine::GetInstance().entityManager->CreateEntity(EntityType::ENEMYFLOOR);
+	//	enemyF->SetPosition(Vector2D(x, y));
+	//	if (isAlive) {
+	//		enemyF->SetAlive();
+	//	}
+	//	else {
+	//		enemyF->SetDead();
+	//	}
+	//	enemyFList.push_back(enemyF);
+	//}
 }
 
 // L15 TODO 2: Implement the Save function
 void Scene::SaveState() {
+	pugi::xml_document saveFile;
+	pugi::xml_parse_result result = saveFile.load_file("config.xml");
 
-	pugi::xml_document loadFile;
-	pugi::xml_parse_result result = loadFile.load_file("config.xml");
-
-	if (result == NULL)
-	{
+	if (result == NULL) {
 		LOG("Could not load file. Pugi error: %s", result.description());
 		return;
 	}
 
-	pugi::xml_node sceneNode = loadFile.child("config").child("scene");
+	pugi::xml_node sceneNode = saveFile.child("config").child("scene");
 
-	//Save info to XML 
-
-	//Player position
-	sceneNode.child("entities").child("player").attribute("x").set_value(player->GetPosition().getX() );
+	// Guardar la posición del jugador
+	sceneNode.child("entities").child("player").attribute("x").set_value(player->GetPosition().getX());
 	sceneNode.child("entities").child("player").attribute("y").set_value(player->GetPosition().getY());
 
-	//enemies
-	// ...
+	// Guardar enemigos
+	//pugi::xml_node enemiesNode = sceneNode.child("entities").child("enemies");
+	//for (auto enemy : enemyList) {
+	//	pugi::xml_node enemyNode = enemiesNode.append_child("enemy");
+	//	enemyNode.append_attribute("x") = enemy->GetPosition().getX();
+	//	enemyNode.append_attribute("y") = enemy->GetPosition().getY();
+	//	enemyNode.append_attribute("alive") = enemy->isAlive(); // Usar la función isAlive
+	//}
 
-	//Saves the modifications to the XML 
-	loadFile.save_file("config.xml");
+	// Guardar enemigos Floor
+	//for (auto enemyF : enemyFList) {
+	//	pugi::xml_node enemyFNode = enemiesNode.append_child("enemyFloor");
+	//	enemyFNode.append_attribute("x") = enemyF->GetPosition().getX();
+	//	enemyFNode.append_attribute("y") = enemyF->GetPosition().getY();
+	//	enemyFNode.append_attribute("alive") = enemyF->isAlive(); // Usar la función isAlive
+	//}
+
+	Engine::GetInstance().audio.get()->PlayFx(saveFxId);
+
+	// Guardar las modificaciones en el archivo XML
+	saveFile.save_file("config.xml");
 }

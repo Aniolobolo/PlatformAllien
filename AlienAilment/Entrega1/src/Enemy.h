@@ -34,8 +34,10 @@ public:
 	void OnCollision(PhysBody* physA, PhysBody* physB);
 	void OnCollisionEnd(PhysBody* physA, PhysBody* physB);
 	void MoveTowardsTargetTile(float dt);
-
-	bool isAlive = true;
+	bool isAlive() const { return isalive; }
+	void SetAlive();
+	void SetDead();
+	
 	int distCounter = 0;
 
 	SDL_RendererFlip hflip = SDL_FLIP_NONE;
@@ -48,7 +50,7 @@ private:
 	int currentPathIndex = 0;  // Índice actual en la ruta
 	float ENEMY_SPEED = 50.0f;
 	
-
+	bool isalive = true;
 	bool flipSprite = false;
 	bool draw = false;
 

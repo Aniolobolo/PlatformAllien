@@ -61,7 +61,7 @@ bool Enemy::Start() {
 	pathfinding = new Pathfinding();
 	ResetPath();
 
-	isAlive = true;
+	isalive = true;
 
 	return true;
 }
@@ -166,7 +166,7 @@ void Enemy::SetPosition(Vector2D pos) {
 }
 
 Vector2D Enemy::GetPosition() {
-	if (!isAlive) {
+	if (!isalive) {
 		return Vector2D(0, 0);
 	}
 	if (pbody != nullptr) {
@@ -189,10 +189,10 @@ void Enemy::OnCollision(PhysBody* physA, PhysBody* physB) {
 	switch (physB->ctype)
 	{
 	case ColliderType::BULLET:
+	case ColliderType::VOID:
 		LOG("Collided with hazard - DESTROY");
-		isAlive = false;
+		SetDead();
 		Engine::GetInstance().entityManager.get()->DestroyEntity(this);
-		
 		break;
 	}
 }
@@ -203,7 +203,16 @@ void Enemy::OnCollisionEnd(PhysBody* physA, PhysBody* physB)
 	{
 	case ColliderType::BULLET:
 		LOG("Collision hazard");
-		isAlive = false;
 		break;
 	}
+}
+
+void Enemy::SetAlive() {
+	isalive = true;
+	parameters.attribute("alive").set_value(true);
+}
+
+void Enemy::SetDead() {
+	isalive = false;
+	parameters.attribute("alive").set_value(false);
 }

@@ -1,3 +1,5 @@
+// EnemyFloor.cpp
+
 #include "EnemyFloor.h"
 #include "Engine.h"
 #include "Textures.h"
@@ -11,7 +13,7 @@
 #include "EntityManager.h"
 #include "Player.h"
 
-EnemyFloor::EnemyFloor() : Entity(EntityType::ENEMY), pathfinding(nullptr), pbody(nullptr) {}
+EnemyFloor::EnemyFloor() : Entity(EntityType::ENEMY), pathfinding(nullptr), pbody(nullptr), isFalling(false) {}
 
 EnemyFloor::~EnemyFloor() {
     if (pathfinding != nullptr) {
@@ -60,7 +62,7 @@ bool EnemyFloor::Start() {
     pathfinding = new Pathfinding();
     ResetPath();
     pbody->body->SetGravityScale(5);
-    isAlive = true;
+    isalive = true;
 
     return true;
 }
@@ -109,6 +111,17 @@ void EnemyFloor::MoveTowardsTargetTile(float dt)
     pbody->body->SetLinearVelocity(velocityVec);
 }
 
+void EnemyFloor::SetAlive()
+{
+    isalive = true;
+    parameters.attribute("alive").set_value(true);
+}
+
+void EnemyFloor::SetDead() {
+    isalive = false;
+    parameters.attribute("alive").set_value(false);
+}
+
 bool EnemyFloor::Update(float dt)
 {
     // Recalcular el camino hacia el jugador
@@ -127,14 +140,15 @@ bool EnemyFloor::Update(float dt)
     }
 
     // Mover al enemigo hacia el penúltimo tile
-    
-    if (isOnFloor) {
+
+    if (isOnFloor && !isFalling) {
         MoveTowardsTargetTile(dt);
         pbody->body->ApplyLinearImpulseToCenter(b2Vec2(0, -jumpForce), true);
-
     }
+
     // Obtener la velocidad actual del cuerpo físico
     float velocityX = pbody->body->GetLinearVelocity().x;
+    float velocityY = pbody->body->GetLinearVelocity().y;
 
     // Actualizar el estado de flip basado en la dirección del movimiento
     if (velocityX < -0.1f) { // Movimiento hacia la izquierda
@@ -144,6 +158,14 @@ bool EnemyFloor::Update(float dt)
     else if (velocityX > 0.1f) { // Movimiento hacia la derecha
         flipSprite = false;
         hflip = SDL_FLIP_NONE;
+    }
+
+    if (velocityY > 0.1f) {
+        isFalling = true;
+    }
+    else
+    {
+		isFalling = false;
     }
 
     // Actualizar la posición física del enemigo basada en la simulación de física
@@ -176,7 +198,7 @@ void EnemyFloor::SetPosition(Vector2D pos) {
 }
 
 Vector2D EnemyFloor::GetPosition() {
-    if (!isAlive) {
+    if (!isalive) {
         return Vector2D(0, 0);
     }
     if (pbody != nullptr) {
@@ -199,16 +221,19 @@ void EnemyFloor::OnCollision(PhysBody* physA, PhysBody* physB) {
     switch (physB->ctype)
     {
     case ColliderType::BULLET:
+    case ColliderType::VOID:
         LOG("Collided with hazard - DESTROY");
-        isAlive = false;
+        isalive = false;
         Engine::GetInstance().entityManager.get()->DestroyEntity(this);
-        
+
         break;
     case ColliderType::PLATFORM:
         isOnFloor = true;
+        isFalling = false;
         break;
     case ColliderType::HAZARD:
         isOnFloor = true;
+        isFalling = false;
         break;
     }
 }
@@ -219,13 +244,14 @@ void EnemyFloor::OnCollisionEnd(PhysBody* physA, PhysBody* physB)
     {
     case ColliderType::BULLET:
         LOG("Collision hazard");
-        isAlive = false;
         break;
     case ColliderType::PLATFORM:
         isOnFloor = false;
+        isFalling = true;
         break;
     case ColliderType::HAZARD:
         isOnFloor = false;
+        isFalling = true;
         break;
     }
 }

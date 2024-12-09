@@ -1,5 +1,3 @@
-// EnemyFloor.cpp
-
 #include "EnemyFloor.h"
 #include "Engine.h"
 #include "Textures.h"
@@ -25,96 +23,65 @@ bool EnemyFloor::Awake() {
     return true;
 }
 
+// configurar al enemyfloor
 bool EnemyFloor::Start() {
-
-    // Inicializar texturas
     texture = Engine::GetInstance().textures.get()->Load(parameters.attribute("texture").as_string());
     position.setX(parameters.attribute("x").as_int());
     position.setY(parameters.attribute("y").as_int());
     texW = parameters.attribute("w").as_int();
     texH = parameters.attribute("h").as_int();
-
-    // Cargar animaciones
     idle.LoadAnimations(parameters.child("animations").child("idle"));
     move.LoadAnimations(parameters.child("animations").child("move"));
     currentAnimation = &idle;
-
-    // Agregar física al objeto - inicializar el cuerpo físico
     pbody = Engine::GetInstance().physics.get()->CreateCircle((int)position.getX() + texH / 4, (int)position.getY() + texH / 4, texH / 4, bodyType::DYNAMIC);
-
-    // Verificar si pbody se inicializó correctamente
     if (pbody == nullptr) {
         LOG("Error al crear el cuerpo físico del enemigo");
         return false;
     }
-
-    // Asignar tipo de colisionador
     pbody->ctype = ColliderType::ENEMY;
     pbody->listener = this;
-
-    // Configurar la gravedad del cuerpo
     if (!parameters.attribute("gravity").as_bool()) pbody->body->SetGravityScale(0);
-
     deathSfx = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/enemy_death.wav");
-
-    // Establecer la velocidad inicial a cero para evitar movimiento no deseado
     pbody->body->SetLinearVelocity(b2Vec2(0, 0));
-
-    // Inicializar pathfinding
     pathfinding = new Pathfinding();
     ResetPath();
     pbody->body->SetGravityScale(5);
     isalive = true;
-
     return true;
 }
 
-void EnemyFloor::MoveTowardsTargetTile(float dt)
-{
-    // Asegurarse de que hay suficientes tiles en el camino para calcular el movimiento
+void EnemyFloor::MoveTowardsTargetTile(float dt) {
     if (pathfinding == nullptr || pathfinding->pathTiles.size() < 2) return;
-
-    // Paso 1: Verificar si el path tiene más de 20 tiles
+    
+	//si el player está a más de 20 tiles de distancia, el enemigo se queda quieto
     if (pathfinding->pathTiles.size() > 20) {
-        // Detener el movimiento si el path tiene más de 20 tiles
         pbody->body->SetLinearVelocity(b2Vec2(0, 0));
         currentAnimation = &idle;
         return;
     }
-    else
-    {
+    else {
         currentAnimation = &move;
     }
 
-    // Obtener el penúltimo tile (el objetivo inmediato)
+    // coger el penúltimo tile
     auto it = pathfinding->pathTiles.end();
-    Vector2D targetTile = *(--(--it)); // Penúltimo tile
+    Vector2D targetTile = *(--(--it));
     Vector2D targetWorldPos = Engine::GetInstance().map.get()->MapToWorld(targetTile.getX(), targetTile.getY());
-
-    // Calcular la dirección hacia el penúltimo tile
     Vector2D enemyPos = GetPosition();
     Vector2D direction = targetWorldPos + Vector2D(16, 16) - enemyPos;
-
-    // Calcular distancia al objetivo
     float distance = direction.Length();
-
-    // Normalizar la dirección para calcular la velocidad
     Vector2D velocity(0, 0);
-    if (distance > 0.5f) { // Si la distancia es mayor a un umbral, moverse
+
+    if (distance > 0.5f) {
         direction.Normalize();
-        velocity = direction * 100.0f; // Ajustar la velocidad según necesidades
-
-        // Asegurarse de que el movimiento sea solo horizontal
-        velocity.setY(0); // Ignorar la componente vertical
+        velocity = direction * 100.0f;
+        velocity.setY(0);
     }
-
-    // Aplicar la velocidad al cuerpo físico del enemigo
-    b2Vec2 velocityVec = b2Vec2(PIXEL_TO_METERS(velocity.getX()), 0); // Componente Y forzada a 0
+    b2Vec2 velocityVec = b2Vec2(PIXEL_TO_METERS(velocity.getX()), 0);
     pbody->body->SetLinearVelocity(velocityVec);
 }
 
-void EnemyFloor::SetAlive()
-{
+void EnemyFloor::SetAlive() {
     isalive = true;
     parameters.attribute("alive").set_value(true);
 }
@@ -124,66 +91,46 @@ void EnemyFloor::SetDead() {
     parameters.attribute("alive").set_value(false);
 }
 
-bool EnemyFloor::Update(float dt)
-{
-    // Recalcular el camino hacia el jugador
-    ResetPath(); // Restablecer el camino antes de calcular uno nuevo
-
+bool EnemyFloor::Update(float dt) {
+    ResetPath();
     while (pathfinding->pathTiles.empty()) {
         pathfinding->PropagateAStar(SQUARED);
     }
-
     if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F9) == KEY_DOWN) {
         draw = !draw;
     }
-
     if (draw) {
         pathfinding->DrawPath();
     }
-
-    // Mover al enemigo hacia el penúltimo tile
-
     if (isOnFloor && !isFalling) {
         MoveTowardsTargetTile(dt);
         pbody->body->ApplyLinearImpulseToCenter(b2Vec2(0, -jumpForce), true);
     }
-
-    // Obtener la velocidad actual del cuerpo físico
     float velocityX = pbody->body->GetLinearVelocity().x;
     float velocityY = pbody->body->GetLinearVelocity().y;
-
-    // Actualizar el estado de flip basado en la dirección del movimiento
-    if (velocityX < -0.1f) { // Movimiento hacia la izquierda
+    if (velocityX < -0.1f) {
         flipSprite = true;
         hflip = SDL_FLIP_HORIZONTAL;
     }
-    else if (velocityX > 0.1f) { // Movimiento hacia la derecha
+    else if (velocityX > 0.1f) {
         flipSprite = false;
         hflip = SDL_FLIP_NONE;
     }
-
     if (velocityY > 0.1f) {
         isFalling = true;
     }
-    else
-    {
-		isFalling = false;
+    else {
+        isFalling = false;
     }
-
-    // Actualizar la posición física del enemigo basada en la simulación de física
     b2Transform pbodyPos = pbody->body->GetTransform();
     position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texW / 2);
     position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH / 2);
-
-    // Dibujar al enemigo en la pantalla y actualizar su animación
     Engine::GetInstance().render.get()->DrawTexture(texture, (int)position.getX(), (int)position.getY(), &currentAnimation->GetCurrentFrame(), hflip);
     currentAnimation->Update();
-
     return true;
 }
 
-bool EnemyFloor::CleanUp()
-{
+bool EnemyFloor::CleanUp() {
     if (pbody != nullptr) {
         Engine::GetInstance().physics.get()->DeletePhysBody(pbody);
     }
@@ -226,15 +173,13 @@ void EnemyFloor::ResetPath() {
 }
 
 void EnemyFloor::OnCollision(PhysBody* physA, PhysBody* physB) {
-    switch (physB->ctype)
-    {
+    switch (physB->ctype) {
     case ColliderType::BULLET:
     case ColliderType::VOID:
         LOG("Collided with hazard - DESTROY");
         isalive = false;
         Engine::GetInstance().audio.get()->PlayFx(deathSfx);
         Engine::GetInstance().entityManager.get()->DestroyEntity(this);
-
         break;
     case ColliderType::PLATFORM:
         isOnFloor = true;
@@ -247,10 +192,8 @@ void EnemyFloor::OnCollision(PhysBody* physA, PhysBody* physB) {
     }
 }
 
-void EnemyFloor::OnCollisionEnd(PhysBody* physA, PhysBody* physB)
-{
-    switch (physB->ctype)
-    {
+void EnemyFloor::OnCollisionEnd(PhysBody* physA, PhysBody* physB) {
+    switch (physB->ctype) {
     case ColliderType::BULLET:
         LOG("Collision hazard");
         break;

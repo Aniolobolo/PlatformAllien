@@ -12,7 +12,7 @@
 #include "Map.h"
 #include "Item.h"
 
-Scene::Scene() : Module(), bgMusic(0), checkP(nullptr), player(nullptr), saveFxId(0), areControlsVisible(false), hasReachedCheckpoint(false), controls(nullptr)
+Scene::Scene() : Module(), bgMusic(0), checkP(nullptr), player(nullptr), areControlsVisible(false), hasReachedCheckpoint(false), controls(nullptr)
 {
     name = "scene";
     img = nullptr;
@@ -32,13 +32,16 @@ bool Scene::Awake()
     player = (Player*)Engine::GetInstance().entityManager->CreateEntity(EntityType::PLAYER);
     player->SetParameters(configParameters.child("entities").child("player"));
 
+    // Crear un item
     Item* item = (Item*)Engine::GetInstance().entityManager->CreateEntity(EntityType::ITEM);
     item->position = Vector2D(100, 500);
 
+	// Crear un checkpoint
     pugi::xml_node checkpoint = configParameters.child("entities").child("checkpoints").child("checkpoint");
     checkP = (Checkpoint*)Engine::GetInstance().entityManager->CreateEntity(EntityType::CHECKPOINT);
     checkP->SetParameters(checkpoint);
-
+    
+	// Crear enemigos
     for (pugi::xml_node enemyNode = configParameters.child("entities").child("enemies").child("enemy"); enemyNode; enemyNode = enemyNode.next_sibling("enemy"))
     {
         Enemy* enemy = (Enemy*)Engine::GetInstance().entityManager->CreateEntity(EntityType::ENEMY);
@@ -66,8 +69,6 @@ bool Scene::Start()
 
     bgMusic = Engine::GetInstance().audio->PlayMusic("Assets/Audio/Music/music.ogg", 0);
 
-    saveFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/save.wav");
-
     int musicVolume = 40;
     Mix_VolumeMusic(musicVolume);
 
@@ -86,6 +87,7 @@ bool Scene::Update(float dt)
     // Si el jugador no está en respawn y está dentro de los intervalos, mueve la cámara
     Engine::GetInstance().render.get()->camera.x = 500 - player->position.getX();
 
+	// Mostrar el menú de controles
     if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_H) == KEY_DOWN) {
         areControlsVisible = !areControlsVisible;
     }
@@ -117,6 +119,7 @@ bool Scene::PostUpdate()
     if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F5) == KEY_DOWN)
         SaveState();
 
+	// Comprobar si el jugador ha llegado al checkpoint
     if (!hasReachedCheckpoint) {
         if (checkP->hasSounded) {
             SaveState();
@@ -166,6 +169,8 @@ void Scene::LoadState() {
         );
         player->SetPosition(playerPos);
     }
+
+	// AQUI HEMOS INTENTADO IMPLEMENTAR EL LOAD PARA LOS ENEMIGOS. COMO TAL FUNCIONA PERO CUANDO EL ENEMIGO SE MUERE Y SE VUELVE A CARGAR, NO FUNCIONA Y EL CODIGO PETA.
 
     //// Cargar enemigos
     //int i = 0;
@@ -219,6 +224,8 @@ void Scene::SaveState() {
         playerNode.attribute("y").set_value(player->GetPosition().getY());
     }
 
+    // AQUI HEMOS INTENTADO IMPLEMENTAR EL SAVE PARA LOS ENEMIGOS. COMO TAL FUNCIONA PERO COMO EL LOAD NO FUNCIONABA PUES AL FINAL LO HEMOS DESCARTADO.
+
     //// Guardar enemigos
     //pugi::xml_node enemiesNode = sceneNode.child("entities").child("enemies");
     //for (Enemy* enemy : enemyList) {
@@ -235,8 +242,6 @@ void Scene::SaveState() {
     //    enemyFNode.append_attribute("y").set_value(enemyF->GetPosition().getY());
     //    enemyFNode.append_attribute("alive").set_value(enemyF->isAlive());
     //}
-
-    Engine::GetInstance().audio.get()->PlayFx(saveFxId);
 
     // Guardar las modificaciones en el archivo XML
     saveFile.save_file("config.xml");

@@ -127,7 +127,7 @@ bool Player::Update(float dt)
 			Vector2D bulletPosition = GetPosition();
 			bulletPosition.setX(bulletPosition.getX() + (GetDirection().getX() * 28));
 			Bullet* bullet = new Bullet(BulletType::HORIZONTAL);
-			bullet->SetDirection(GetDirection());  // Establecer la dirección de la bala
+			bullet->SetDirection(GetDirection());
 			bullet->SetParameters(Engine::GetInstance().scene.get()->configParameters);
 			bullet->texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/player/bullet2.png");
 			Engine::GetInstance().entityManager.get()->AddEntity(bullet);
@@ -141,18 +141,17 @@ bool Player::Update(float dt)
 			isShooting = true;
 			currentAnimation = &shootup;
 			Vector2D bulletPosition = GetPosition();
-			bulletPosition.setY(bulletPosition.getY() - 28);  // Ajustar la posición inicial de la bala vertical
+			bulletPosition.setY(bulletPosition.getY() - 28);
 
-			// Ajustar la posición inicial de la bala dependiendo de la dirección en la que el jugador esté mirando
 			if (flipSprite) {
-				bulletPosition.setX(bulletPosition.getX() - 12);  // Offset hacia la izquierda
+				bulletPosition.setX(bulletPosition.getX() - 12);
 			}
 			else {
-				bulletPosition.setX(bulletPosition.getX() + 12);  // Offset hacia la derecha
+				bulletPosition.setX(bulletPosition.getX() + 12);
 			}
 
 			Bullet* bullet = new Bullet(BulletType::VERTICAL);
-			bullet->SetDirection(Vector2D(0, -1));  // Establecer la dirección de la bala vertical
+			bullet->SetDirection(Vector2D(0, -1));
 			bullet->SetParameters(Engine::GetInstance().scene.get()->configParameters);
 			bullet->texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/player/bullet3.png");
 			Engine::GetInstance().entityManager.get()->AddEntity(bullet);
@@ -206,6 +205,7 @@ bool Player::Update(float dt)
 		}
 	}
 
+	// Logica del player si está muerto
 	if (isDead) {
 		if (currentAnimation == &die && currentAnimation->HasFinished()) {
 			die.Reset();

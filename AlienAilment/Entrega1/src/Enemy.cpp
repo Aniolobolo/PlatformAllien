@@ -158,6 +158,12 @@ bool Enemy::CleanUp()
 	return true;
 }
 
+void Enemy::CreateEnemyAtPosition(Vector2D position) {
+	Enemy* newEnemy = new Enemy();
+	newEnemy->SetPosition(position);
+	Engine::GetInstance().entityManager.get()->AddEntity(newEnemy);
+}
+
 void Enemy::SetPosition(Vector2D pos) {
 	pos.setX(pos.getX() + texW / 4);
 	pos.setY(pos.getY() + texH / 4);

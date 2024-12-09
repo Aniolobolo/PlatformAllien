@@ -190,6 +190,12 @@ bool EnemyFloor::CleanUp()
     return true;
 }
 
+void EnemyFloor::CreateEnemyAtPosition(Vector2D position) {
+    Enemy* newEnemy = new Enemy();
+    newEnemy->SetPosition(position);
+    Engine::GetInstance().entityManager.get()->AddEntity(newEnemy);
+}
+
 void EnemyFloor::SetPosition(Vector2D pos) {
     pos.setX(pos.getX() + texW / 2);
     pos.setY(pos.getY() + texH / 2);

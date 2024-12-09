@@ -37,6 +37,7 @@ public:
 	bool isAlive() const { return isalive; }
 	void SetAlive();
 	void SetDead();
+	void CreateEnemyAtPosition(Vector2D position);
 	
 	int distCounter = 0;
 

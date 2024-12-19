@@ -63,6 +63,8 @@ void EnemyFloor::MoveTowardsTargetTile(float dt) {
         currentAnimation = &move;
     }
 
+    pbody->body->ApplyLinearImpulseToCenter(b2Vec2(0, -jumpForce), true);
+
     // coger el penúltimo tile
     auto it = pathfinding->pathTiles.end();
     Vector2D targetTile = *(--(--it));
@@ -104,7 +106,7 @@ bool EnemyFloor::Update(float dt) {
     }
     if (isOnFloor && !isFalling) {
         MoveTowardsTargetTile(dt);
-        pbody->body->ApplyLinearImpulseToCenter(b2Vec2(0, -jumpForce), true);
+        
     }
     float velocityX = pbody->body->GetLinearVelocity().x;
     float velocityY = pbody->body->GetLinearVelocity().y;
@@ -121,6 +123,10 @@ bool EnemyFloor::Update(float dt) {
     }
     else {
         isFalling = false;
+    }
+
+    if (velocityX == 0.0f) {
+        currentAnimation = &idle;
     }
     b2Transform pbodyPos = pbody->body->GetTransform();
     position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texW / 2);

@@ -292,6 +292,15 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 			LOG("Collision HAZARD");
 		}
 		break;
+	case ColliderType::ENEMYBULLET:
+		if (!isDead && !godMode) {
+			isDead = true;
+			currentAnimation = &die;
+			Engine::GetInstance().audio.get()->PlayFx(dieFxId);
+			Engine::GetInstance().physics.get()->DeletePhysBody(physB);
+			LOG("Collision HAZARD");
+		}
+		break;
 	case ColliderType::VOID:
 		if (!isDead) {
 			isDead = true;

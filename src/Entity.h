@@ -8,6 +8,7 @@ enum class EntityType
 	PLAYER,
 	ENEMY,
 	ENEMYFLOOR,
+	BOSS,
 	ITEM,
 	BULLET,
 	CHECKPOINT,

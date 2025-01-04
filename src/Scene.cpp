@@ -55,6 +55,10 @@ bool Scene::Awake()
         enemyFList.push_back(enemyF);
     }
 
+    pugi::xml_node bossNode = configParameters.child("entities").child("bosses").child("boss");
+    boss = (Boss*)Engine::GetInstance().entityManager->CreateEntity(EntityType::BOSS);
+    boss->SetParameters(bossNode);
+
     return ret;
 }
 

@@ -36,6 +36,9 @@ bool Bullet::Start() {
     if (BulletType::HORIZONTAL == type) {
         texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/player/bullet2.png");
     }
+	else if (BulletType::BOSSH == type) {
+		texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/enemies/bossBullet.png");
+	}
     else if (BulletType::VERTICAL == type) {
         texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/player/bullet3.png");
     }
@@ -58,7 +61,14 @@ bool Bullet::Start() {
     pbody->body->SetGravityScale(0);
 
     // Establecer tipo de colisión
-    pbody->ctype = ColliderType::BULLET;
+    if (BulletType::BOSSH == type) {
+        pbody->ctype = ColliderType::ENEMYBULLET;
+    }
+    else
+    {
+        pbody->ctype = ColliderType::BULLET;
+    }
+    
 
     return true;
 }
@@ -70,7 +80,7 @@ bool Bullet::Update(float dt) {
     }
 
     b2Vec2 velocity = pbody->body->GetLinearVelocity();
-    if (type == BulletType::HORIZONTAL) {
+    if (type == BulletType::HORIZONTAL || type == BulletType::BOSSH) {
         velocity.x = direction.getX() * 5.0f;  // Velocidad constante en la dirección horizontal
         velocity.y = 0.0f;  // Sin movimiento vertical
     }

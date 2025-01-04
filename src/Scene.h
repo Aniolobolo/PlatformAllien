@@ -4,6 +4,7 @@
 #include "Player.h"
 #include "Enemy.h"
 #include "EnemyFloor.h"
+#include "Boss.h"
 #include "Checkpoint.h"
 #include "Bullet.h"
 #include <vector>
@@ -63,11 +64,13 @@ private:
 	//L03: TODO 3b: Declare a Player attribute
 	Player* player;
 	Checkpoint* checkP;
+	Boss* boss;
 	SDL_Texture* mouseTileTex = nullptr;
 	std::string tilePosDebug = "[0,0]";
 	bool once = false;
 	std::vector<Enemy*> enemyList;
 	std::vector<EnemyFloor*> enemyFList;
 	std::vector<Bullet*> bulletList;
+	std::vector<Boss*> bossList;
 	bool hasReachedCheckpoint = false;
 };

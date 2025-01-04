@@ -10,6 +10,7 @@ struct SDL_Texture;
 // Declarar el enum BulletType
 enum class BulletType {
     HORIZONTAL,
+    BOSSH,
     VERTICAL
 };
 

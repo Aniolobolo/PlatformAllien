@@ -106,12 +106,14 @@ Entity* EntityManager::CreateEntity(EntityType type)
 
 void EntityManager::DestroyEntity(Entity* entity)
 {
-	auto it = std::find(entities.begin(), entities.end(), entity);
-	if (it != entities.end())
+	for (auto it = entities.begin(); it != entities.end(); ++it)
 	{
-		(*it)->CleanUp();
-		delete* it; // Liberar la memoria asignada
-		entities.erase(it); // Eliminar la entidad de la lista
+		if (*it == entity) {
+			(*it)->CleanUp();
+			delete* it; // Free the allocated memory
+			entities.erase(it); // Remove the entity from the list
+			break; // Exit the loop after removing the entity
+		}
 	}
 }
 
@@ -123,26 +125,10 @@ void EntityManager::AddEntity(Entity* entity)
 bool EntityManager::Update(float dt)
 {
 	bool ret = true;
-	std::vector<Entity*> entitiesToRemove;
-
-	for (auto entity : entities)
+	for (const auto entity : entities)
 	{
-		// Actualizar solo entidades activas
-		if (entity->active)
-		{
-			ret = entity->Update(dt);
-		}
-		else
-		{
-			entitiesToRemove.push_back(entity);
-		}
+		if (entity->active == false) continue;
+		ret = entity->Update(dt);
 	}
-
-	// Eliminar entidades después de la iteración
-	for (auto entity : entitiesToRemove)
-	{
-		DestroyEntity(entity);
-	}
-
 	return ret;
 }

@@ -124,26 +124,6 @@ bool Boss::Update(float dt) {
 		}
 
 	}
-	else if (isDying && currentAnimation->HasFinished()) {
-		Engine::GetInstance().entityManager.get()->DestroyEntity(this);
-		return false;
-	
-
-	b2Transform pbodyPos = pbody->body->GetTransform();
-	position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texH / 2);
-	position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH / 2);
-	Engine::GetInstance().render.get()->DrawTexture(texture, (int)position.getX(), (int)position.getY(), &currentAnimation->GetCurrentFrame(), hflip);
-	currentAnimation->Update();
-	return true;
-
-
-		if (isShooting && currentAnimation->HasFinished()) {
-			isShooting = false;
-			shoot.Reset();
-			currentAnimation = &idle;
-		}
-
-	}
 
 	b2Transform pbodyPos = pbody->body->GetTransform();
 	position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texH / 2);
@@ -210,14 +190,14 @@ void Boss::OnCollision(PhysBody* physA, PhysBody* physB) {
 	case ColliderType::BULLET:
 		LOG("Collided with bullet - DESTROY");
 		Engine::GetInstance().audio.get()->PlayFx(deathSfx);
+		Engine::GetInstance().entityManager.get()->DestroyEntity(this);
 		isDying = true;
-		currentAnimation = &die;
+		
 		break;
 	case ColliderType::VOID:
 		LOG("Collided with hazard - DESTROY");
 		Engine::GetInstance().audio.get()->PlayFx(deathSfx);
-		isDying = true;
-		currentAnimation = &die;
+		Engine::GetInstance().entityManager.get()->DestroyEntity(this);
 		break;
 	}
 }

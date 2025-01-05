@@ -51,8 +51,8 @@ private:
 	std::vector<Vector2D> pathTiles;  // Almacena la ruta de tiles
 	int currentPathIndex = 0;  // Índice actual en la ruta
 	float ENEMY_SPEED = 15.0f;
-	int health = 4;
-	int maxHealth = 4;
+	int health = 50;
+	int maxHealth = 50;
 
 	bool isShooting = false;
 	bool isalive = true;

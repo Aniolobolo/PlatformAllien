@@ -30,8 +30,12 @@ bool EnemyFloor::Start() {
     position.setY(parameters.attribute("y").as_int());
     texW = parameters.attribute("w").as_int();
     texH = parameters.attribute("h").as_int();
+
     idle.LoadAnimations(parameters.child("animations").child("idle"));
     move.LoadAnimations(parameters.child("animations").child("move"));
+    die.LoadAnimations(parameters.child("animations").child("die"));
+    fall.LoadAnimations(parameters.child("animations").child("fall"));
+
     currentAnimation = &idle;
     pbody = Engine::GetInstance().physics.get()->CreateCircle((int)position.getX() + texH / 4, (int)position.getY() + texH / 4, texH / 4, bodyType::DYNAMIC);
     if (pbody == nullptr) {
@@ -45,7 +49,7 @@ bool EnemyFloor::Start() {
     pbody->body->SetLinearVelocity(b2Vec2(0, 0));
     pathfinding = new Pathfinding();
     ResetPath();
-    pbody->body->SetGravityScale(5);
+    pbody->body->SetGravityScale(2);
     isalive = true;
     return true;
 }
@@ -95,39 +99,46 @@ void EnemyFloor::SetDead() {
 
 bool EnemyFloor::Update(float dt) {
     ResetPath();
-    while (pathfinding->pathTiles.empty()) {
-        pathfinding->PropagateAStar(SQUARED);
-    }
-    if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F9) == KEY_DOWN) {
-        draw = !draw;
-    }
-    if (draw) {
-        pathfinding->DrawPath();
-    }
-    if (isOnFloor && !isFalling) {
-        MoveTowardsTargetTile(dt);
-        
-    }
-    float velocityX = pbody->body->GetLinearVelocity().x;
-    float velocityY = pbody->body->GetLinearVelocity().y;
-    if (velocityX < -0.1f) {
-        flipSprite = true;
-        hflip = SDL_FLIP_HORIZONTAL;
-    }
-    else if (velocityX > 0.1f) {
-        flipSprite = false;
-        hflip = SDL_FLIP_NONE;
-    }
-    if (velocityY > 0.1f) {
-        isFalling = true;
-    }
-    else {
-        isFalling = false;
+    if (!isDying) {
+        while (pathfinding->pathTiles.empty()) {
+            pathfinding->PropagateAStar(SQUARED);
+        }
+        if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F9) == KEY_DOWN) {
+            draw = !draw;
+        }
+        if (draw) {
+            pathfinding->DrawPath();
+        }
+        if (isOnFloor && !isFalling) {
+            MoveTowardsTargetTile(dt);
+        }
+        float velocityX = pbody->body->GetLinearVelocity().x;
+        float velocityY = pbody->body->GetLinearVelocity().y;
+        if (velocityX < -0.1f) {
+            flipSprite = true;
+            hflip = SDL_FLIP_HORIZONTAL;
+        }
+        else if (velocityX > 0.1f) {
+            flipSprite = false;
+            hflip = SDL_FLIP_NONE;
+        }
+        if (velocityY > 0.1f) {
+            isFalling = true;
+        }
+        else {
+            isFalling = false;
+        }
+
+        if (velocityX == 0.0f) {
+            currentAnimation = &idle;
+        }
     }
 
-    if (velocityX == 0.0f) {
-        currentAnimation = &idle;
+    if (isDying) {
+        b2Vec2 currentVelocity = pbody->body->GetLinearVelocity();
+        pbody->body->SetLinearVelocity(b2Vec2(0, currentVelocity.y));
     }
+
     b2Transform pbodyPos = pbody->body->GetTransform();
     position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texW / 2);
     position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH / 2);
@@ -181,6 +192,21 @@ void EnemyFloor::ResetPath() {
 void EnemyFloor::OnCollision(PhysBody* physA, PhysBody* physB) {
     switch (physB->ctype) {
     case ColliderType::BULLET:
+        if (!isDying) {
+            LOG("Collided with bullet - START DYING");
+            Engine::GetInstance().audio.get()->PlayFx(deathSfx);
+            isDying = true;
+            currentAnimation = &die;
+        }
+        if (isDying && currentAnimation->HasFinished()) {
+            LOG("FINISHED - DELETE ENEMY");
+            Engine::GetInstance().audio.get()->PlayFx(deathSfx);
+            Engine::GetInstance().entityManager.get()->DestroyEntity(this);
+            isDying = false;
+            die.Reset();
+        }
+        Engine::GetInstance().entityManager.get()->DestroyEntity(physB->listener);
+        break;
     case ColliderType::VOID:
         LOG("Collided with hazard - DESTROY");
         isalive = false;
@@ -205,10 +231,12 @@ void EnemyFloor::OnCollisionEnd(PhysBody* physA, PhysBody* physB) {
         break;
     case ColliderType::PLATFORM:
         isOnFloor = false;
+        currentAnimation = &fall;
         isFalling = true;
         break;
     case ColliderType::HAZARD:
         isOnFloor = false;
+        currentAnimation = &fall;
         isFalling = true;
         break;
     }

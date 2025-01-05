@@ -75,7 +75,6 @@ void Player::ResetPlayerPosition() {
 	currentAnimation = &idle;
 	pbody->body->SetLinearVelocity(b2Vec2(0, -0.1f));
 	Engine::GetInstance().scene.get()->LoadState();
-	respawn = false;
 }
 
 bool Player::Update(float dt)
@@ -114,7 +113,7 @@ bool Player::Update(float dt)
 		}
 
 		// Fly using god mode
-		if (godMode && Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_SPACE) == KEY_REPEAT) {
+		if (godMode && !isShooting && Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_SPACE) == KEY_REPEAT) {
 			pbody->body->ApplyLinearImpulseToCenter(b2Vec2(0, -0.10f), true);
 			isJumping = true;
 			isFalling = false;
@@ -213,6 +212,9 @@ bool Player::Update(float dt)
 			currentAnimation = &idle;
 		}
 	}
+	else {
+		respawn = false;
+	}
 
 	//godmode
 	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F10) == KEY_DOWN) {
@@ -271,6 +273,7 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 		LOG("Collision ITEM");
 		Engine::GetInstance().audio.get()->PlayFx(pickCoinFxId);
 		Engine::GetInstance().physics.get()->DeletePhysBody(physB);
+		Engine::GetInstance().entityManager.get()->DestroyEntity(physB->listener);
 		break;
 	case ColliderType::HAZARD:
 		if (!isDead && !godMode) {
@@ -311,6 +314,9 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 		break;
 	case ColliderType::CHECKPOINT:
 		LOG("Collision Checkpoint");
+		if (!reachedCheckpoint) {
+			reachedCheckpoint = true;
+		}
 		if (isFalling) {
 			isFalling = false;
 			isJumping = false;
@@ -341,6 +347,10 @@ void Player::OnCollisionEnd(PhysBody* physA, PhysBody* physB)
 		break;
 	case ColliderType::HAZARD:
 		LOG("Collision HAZARD");
+		if (godMode) {
+			isFalling = true;
+			isJumping = false;
+		}
 		break;
 	case ColliderType::ENEMY:
 		LOG("Collision ENEMY");

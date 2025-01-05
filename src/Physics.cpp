@@ -398,6 +398,7 @@ void Physics::EndContact(b2Contact* contact)
 //--------------- PhysBody
 void Physics::DeletePhysBody(PhysBody* physBody) {
 	bodiesToDelete.push_back(physBody);
+	
 }
 
 void PhysBody::GetPosition(int& x, int& y) const

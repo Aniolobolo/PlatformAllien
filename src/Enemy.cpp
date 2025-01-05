@@ -30,6 +30,7 @@ bool Enemy::Start() {
 	texW = parameters.attribute("w").as_int();
 	texH = parameters.attribute("h").as_int();
 	idle.LoadAnimations(parameters.child("animations").child("idle"));
+	die.LoadAnimations(parameters.child("animations").child("die"));
 	currentAnimation = &idle;
 	pbody = Engine::GetInstance().physics.get()->CreateCircle((int)position.getX() + texH / 4, (int)position.getY() + texH / 4, texH / 4, bodyType::DYNAMIC);
 	if (pbody == nullptr) {
@@ -74,25 +75,33 @@ void Enemy::MoveTowardsTargetTile(float dt) {
 
 bool Enemy::Update(float dt) {
 	ResetPath();
-	while (pathfinding->pathTiles.empty()) {
-		pathfinding->PropagateAStar(SQUARED);
+	if (!isDying) {
+		while (pathfinding->pathTiles.empty()) {
+			pathfinding->PropagateAStar(SQUARED);
+		}
+		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F9) == KEY_DOWN) {
+			draw = !draw;
+		}
+		if (draw) {
+			pathfinding->DrawPath();
+		}
+		MoveTowardsTargetTile(dt);
+		float velocityX = pbody->body->GetLinearVelocity().x;
+		if (velocityX < -0.1f) {
+			flipSprite = true;
+			hflip = SDL_FLIP_HORIZONTAL;
+		}
+		else if (velocityX > 0.1f) {
+			flipSprite = false;
+			hflip = SDL_FLIP_NONE;
+		}
 	}
-	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F9) == KEY_DOWN) {
-		draw = !draw;
+
+	if (isDying) {
+		b2Vec2 currentVelocity = pbody->body->GetLinearVelocity();
+		pbody->body->SetLinearVelocity(b2Vec2(0, currentVelocity.y));
 	}
-	if (draw) {
-		pathfinding->DrawPath();
-	}
-	MoveTowardsTargetTile(dt);
-	float velocityX = pbody->body->GetLinearVelocity().x;
-	if (velocityX < -0.1f) {
-		flipSprite = true;
-		hflip = SDL_FLIP_HORIZONTAL;
-	}
-	else if (velocityX > 0.1f) {
-		flipSprite = false;
-		hflip = SDL_FLIP_NONE;
-	}
+
 	b2Transform pbodyPos = pbody->body->GetTransform();
 	position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texH / 2);
 	position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH / 2);
@@ -146,6 +155,22 @@ void Enemy::ResetPath() {
 void Enemy::OnCollision(PhysBody* physA, PhysBody* physB) {
 	switch (physB->ctype) {
 	case ColliderType::BULLET:
+		if (!isDying) {
+			LOG("Collided with bullet - START DYING");
+			Engine::GetInstance().audio.get()->PlayFx(deathSfx);
+			isDying = true;
+			currentAnimation = &die;
+			pbody->body->SetGravityScale(1);
+		}
+		if (isDying && currentAnimation->HasFinished()) {
+			LOG("FINISHED - DELETE ENEMY");
+			Engine::GetInstance().audio.get()->PlayFx(deathSfx);
+			Engine::GetInstance().entityManager.get()->DestroyEntity(this);
+			isDying = false;
+			die.Reset();
+		}
+		Engine::GetInstance().entityManager.get()->DestroyEntity(physB->listener);
+		break;
 	case ColliderType::VOID:
 		LOG("Collided with hazard - DESTROY");
 		SetDead();

@@ -59,15 +59,21 @@ private:
 	bool isJumping = false;
 	bool isFalling;
 
+	bool isDying = false;
+
 	int deathSfx;
 
 	SDL_Texture* texture;
 	const char* texturePath;
 	int texW, texH;
 	pugi::xml_node parameters;
+
 	Animation* currentAnimation = nullptr;
 	Animation move;
 	Animation idle;
+	Animation die;
+	Animation fall;
+	
 	PhysBody* pbody;
 	Pathfinding* pathfinding;
 };

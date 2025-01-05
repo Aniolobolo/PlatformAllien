@@ -17,7 +17,7 @@
 	<scene>
 		<map path="Assets/Maps/" name="Nivel1.tmx" />
 		<entities>
-			<player x="2507" y="300" w="64" h="64" texture="Assets/Textures/player/PlayerAnimations.png">
+			<player x="200" y="520" w="64" h="64" texture="Assets/Textures/player/PlayerAnimations.png">
 				<animations>
 					<idle loop="true" speed="0.3">
 						<frame x="0" y="0" w="64" h="64" />
@@ -99,6 +99,14 @@
 							<frame x="256" y="0" w="64" h="64" />
 							<frame x="320" y="0" w="64" h="64" />
 						</idle>
+						<die loop="false" speed="0.2">
+							<frame x="0" y="64" w="64" h="64" />
+							<frame x="64" y="64" w="64" h="64" />
+							<frame x="128" y="64" w="64" h="64" />
+							<frame x="192" y="64" w="64" h="64" />
+							<frame x="256" y="64" w="64" h="64" />
+							<frame x="320" y="64" w="64" h="64" />
+						</die>
 					</animations>
 				</enemy>
 				<enemy name="enemyFly2" x="2375" y="500" w="64" h="64" texture="Assets/Textures/enemies/EnemyFlyAnimations.png" gravity="true" alive="true">
@@ -111,6 +119,14 @@
 							<frame x="256" y="0" w="64" h="64" />
 							<frame x="320" y="0" w="64" h="64" />
 						</idle>
+						<die loop="false" speed="0.2">
+							<frame x="0" y="64" w="64" h="64" />
+							<frame x="64" y="64" w="64" h="64" />
+							<frame x="128" y="64" w="64" h="64" />
+							<frame x="192" y="64" w="64" h="64" />
+							<frame x="256" y="64" w="64" h="64" />
+							<frame x="320" y="64" w="64" h="64" />
+						</die>
 					</animations>
 				</enemy>
 				<enemyFloor name="enemyFloor" x="580" y="620" w="64" h="64" texture="Assets/Textures/enemies/EnemyGroundAnimations.png" gravity="true" alive="true">
@@ -129,6 +145,17 @@
 							<frame x="0" y="64" w="64" h="64" />
 							<frame x="64" y="64" w="64" h="64" />
 						</idle>
+						<die loop="false" speed="0.2">
+							<frame x="0" y="128" w="64" h="64" />
+							<frame x="64" y="128" w="64" h="64" />
+							<frame x="128" y="128" w="64" h="64" />
+							<frame x="192" y="128" w="64" h="64" />
+							<frame x="256" y="128" w="64" h="64" />
+						</die>
+						<fall loop="true" speed="0.1">
+							<frame x="0" y="192" w="64" h="64" />
+							<frame x="64" y="192" w="64" h="64" />
+						</fall>
 					</animations>
 				</enemyFloor>
 				<enemyFloor name="enemyFloor2" x="3330" y="370" w="64" h="64" texture="Assets/Textures/enemies/EnemyGroundAnimations.png" gravity="true" alive="true">
@@ -147,6 +174,17 @@
 							<frame x="0" y="64" w="64" h="64" />
 							<frame x="64" y="64" w="64" h="64" />
 						</idle>
+						<die loop="false" speed="0.2">
+							<frame x="0" y="128" w="64" h="64" />
+							<frame x="64" y="128" w="64" h="64" />
+							<frame x="128" y="128" w="64" h="64" />
+							<frame x="192" y="128" w="64" h="64" />
+							<frame x="256" y="128" w="64" h="64" />
+						</die>
+						<fall loop="true" speed="0.1">
+							<frame x="0" y="192" w="64" h="64" />
+							<frame x="64" y="192" w="64" h="64" />
+						</fall>
 					</animations>
 				</enemyFloor>
 			</enemies>

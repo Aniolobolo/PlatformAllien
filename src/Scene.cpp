@@ -89,7 +89,18 @@ bool Scene::PreUpdate()
 bool Scene::Update(float dt)
 {
     // Si el jugador no está en respawn y está dentro de los intervalos, mueve la cámara
-    Engine::GetInstance().render.get()->camera.x = 500 - player->position.getX();
+    if (player->position.getX() >= 525 && !player->isDead && player->position.getX() <= 3350) {
+        Engine::GetInstance().render.get()->camera.x = 500 - player->position.getX();
+    }
+    else if (player->respawn) {
+        if (player->reachedCheckpoint) {
+            Engine::GetInstance().render.get()->camera.x = 2460;
+        }
+        else {
+            Engine::GetInstance().render.get()->camera.x = 0;
+        }
+    }
+    
 
 	// Mostrar el menú de controles
     if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_H) == KEY_DOWN) {

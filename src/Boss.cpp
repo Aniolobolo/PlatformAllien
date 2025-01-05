@@ -125,6 +125,11 @@ bool Boss::Update(float dt) {
 
 	}
 
+	if (isDying) {
+		b2Vec2 currentVelocity = pbody->body->GetLinearVelocity();
+		pbody->body->SetLinearVelocity(b2Vec2(0, currentVelocity.y));
+	}
+
 	b2Transform pbodyPos = pbody->body->GetTransform();
 	position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texH / 2);
 	position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH / 2);
@@ -186,21 +191,38 @@ void Boss::ResetPath() {
 }
 
 void Boss::OnCollision(PhysBody* physA, PhysBody* physB) {
-	switch (physB->ctype) {
-	case ColliderType::BULLET:
-		LOG("Collided with bullet - DESTROY");
-		Engine::GetInstance().audio.get()->PlayFx(deathSfx);
-		Engine::GetInstance().entityManager.get()->DestroyEntity(this);
-		isDying = true;
-		
-		break;
-	case ColliderType::VOID:
-		LOG("Collided with hazard - DESTROY");
-		Engine::GetInstance().audio.get()->PlayFx(deathSfx);
-		Engine::GetInstance().entityManager.get()->DestroyEntity(this);
-		break;
-	}
+    switch (physB->ctype) {
+    case ColliderType::BULLET:
+        if (!isDying) {
+			if (health > 0) {
+				health--;
+
+			}
+			if (health <= 0) {
+				LOG("Collided with bullet - START DYING");
+				Engine::GetInstance().audio.get()->PlayFx(deathSfx);
+				isDying = true;
+				currentAnimation = &die;
+				pbody->body->SetGravityScale(1);
+			}
+        }
+		if (isDying && currentAnimation->HasFinished()) {
+			LOG("FINISHED - DELETE BOSS");
+			Engine::GetInstance().audio.get()->PlayFx(deathSfx);
+			Engine::GetInstance().entityManager.get()->DestroyEntity(this);
+			isDying = false;
+			die.Reset();
+		}
+		Engine::GetInstance().entityManager.get()->DestroyEntity(physB->listener);
+        break;
+    case ColliderType::VOID:
+        LOG("Collided with hazard - DESTROY");
+        Engine::GetInstance().audio.get()->PlayFx(deathSfx);
+        Engine::GetInstance().entityManager.get()->DestroyEntity(this);
+        break;
+    }
 }
+
 
 void Boss::OnCollisionEnd(PhysBody* physA, PhysBody* physB) {
 	switch (physB->ctype) {

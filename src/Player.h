@@ -51,7 +51,6 @@ public:
 	int texW, texH;
 	bool flipSprite = false;
 
-
 	//Audio fx
 	int pickCoinFxId;
 	int dieFxId;
@@ -70,6 +69,7 @@ public:
 	bool isDead = false;
 	bool godMode = false;
 	bool respawn = false;
+	bool reachedCheckpoint = false;
 
 	pugi::xml_node parameters;
 	Animation* currentAnimation = nullptr;

@@ -5,6 +5,7 @@
 #include "Enemy.h"
 #include "EnemyFloor.h"
 #include "Boss.h"
+#include "Item.h"
 #include "Checkpoint.h"
 #include "Bullet.h"
 #include <vector>
@@ -70,6 +71,7 @@ private:
 	bool once = false;
 	std::vector<Enemy*> enemyList;
 	std::vector<EnemyFloor*> enemyFList;
+	std::vector<Item*> itemList;
 	std::vector<Bullet*> bulletList;
 	std::vector<Boss*> bossList;
 	bool hasReachedCheckpoint = false;

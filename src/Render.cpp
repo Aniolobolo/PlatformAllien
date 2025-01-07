@@ -39,13 +39,13 @@ void Render::InitButtons()
 	int startY = 100;
 	int spacing = 10;
 
-	for (int i = 0; i < 5; ++i) {
-		buttons[i].rect = { startX, startY + i * (buttonHeight + spacing), buttonWidth, buttonHeight };
-		buttons[i].text = "Button";
-		buttons[i].color = { 255, 255, 255, 255 }; // Blanco
-		buttons[i].hoverColor = { 200, 200, 200, 255 }; // Gris claro
-		buttons[i].isHovered = false;
-	}
+	//for (int i = 0; i < 5; ++i) {
+	//	buttons[i].rect = { startX, startY + i * (buttonHeight + spacing), buttonWidth, buttonHeight };
+	//	buttons[i].text = "Button";
+	//	buttons[i].color = { 255, 255, 255, 255 }; // Blanco
+	//	buttons[i].hoverColor = { 200, 200, 200, 255 }; // Gris claro
+	//	buttons[i].isHovered = false;
+	//}
 }
 
 void Render::HandleHover(int mouseX, int mouseY)

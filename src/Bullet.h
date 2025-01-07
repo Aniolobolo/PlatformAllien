@@ -7,7 +7,6 @@
 
 struct SDL_Texture;
 
-// Declarar el enum BulletType
 enum class BulletType {
     HORIZONTAL,
     BOSSH,
@@ -53,5 +52,5 @@ private:
     Animation* currentAnimation = nullptr;
     Animation travel;
     PhysBody* pbody;
-    BulletType type;  // Nuevo miembro para el tipo de bala
+    BulletType type;
 };

@@ -285,8 +285,12 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 	case ColliderType::ITEM:
 		LOG("Collision ITEM");
 		Engine::GetInstance().audio.get()->PlayFx(pickCoinFxId);
-		Engine::GetInstance().physics.get()->DeletePhysBody(physB);
-		Engine::GetInstance().entityManager.get()->DestroyEntity(physB->listener);
+		break;
+	case ColliderType::POWERUP:
+		LOG("Collision ITEM");
+		//hacer aqui la power up
+		Engine::GetInstance().audio.get()->PlayFx(pickCoinFxId);
+
 		break;
 	case ColliderType::HAZARD:
 		if (!isDead && !godMode) {

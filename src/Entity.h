@@ -10,6 +10,7 @@ enum class EntityType
 	ENEMYFLOOR,
 	BOSS,
 	ITEM,
+	POWERUP,
 	BULLET,
 	CHECKPOINT,
 	UNKNOWN

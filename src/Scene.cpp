@@ -33,8 +33,18 @@ bool Scene::Awake()
     player->SetParameters(configParameters.child("entities").child("player"));
 
     // Crear un item
-    Item* item = (Item*)Engine::GetInstance().entityManager->CreateEntity(EntityType::ITEM);
-    item->position = Vector2D(100, 500);
+    for (pugi::xml_node itemNode = configParameters.child("entities").child("items").child("pickups").child("coin"); itemNode; itemNode = itemNode.next_sibling("coin"))
+    {
+        Item* coin = (Item*)Engine::GetInstance().entityManager->CreateEntity(EntityType::ITEM);
+        coin->SetParameters(itemNode);
+        itemList.push_back(coin);
+    }
+    for (pugi::xml_node powerNode = configParameters.child("entities").child("items").child("powerups").child("powerup"); powerNode; powerNode = powerNode.next_sibling("powerup"))
+    {
+        Item* powerup = (Item*)Engine::GetInstance().entityManager->CreateEntity(EntityType::POWERUP);
+        powerup->SetParameters(powerNode);
+        itemList.push_back(powerup);
+    }
 
 	// Crear un checkpoint
     pugi::xml_node checkpoint = configParameters.child("entities").child("checkpoints").child("checkpoint");
@@ -99,7 +109,13 @@ bool Scene::Update(float dt)
         else {
             Engine::GetInstance().render.get()->camera.x = 0;
         }
-    }    
+    }   
+
+    if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F3) == KEY_DOWN) {
+        Engine::GetInstance().render.get()->camera.x = 0;
+        player->SetPosition(Vector2D(200, 490));
+
+    }
 
 	// Mostrar el menú de controles
     if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_H) == KEY_DOWN) {
@@ -131,10 +147,7 @@ bool Scene::PostUpdate()
         LoadState();
 
     if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F5) == KEY_DOWN)
-        SaveState();
-
-    if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F3) == KEY_DOWN)
-        player->SetPosition(Vector2D(180, 500));
+        SaveState();        
 
 	// Comprobar si el jugador ha llegado al checkpoint
     if (!hasReachedCheckpoint) {

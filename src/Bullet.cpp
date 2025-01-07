@@ -19,7 +19,7 @@ Bullet::Bullet(BulletType type)
     texH(0),
     texture(nullptr),
     texturePath(""),
-    type(type)  // Inicializar el tipo de bala
+    type(type)
 {
     name = "bullet";
 }

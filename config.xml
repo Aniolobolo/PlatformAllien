@@ -17,7 +17,7 @@
 	<scene>
 		<map path="Assets/Maps/" name="Nivel1.tmx" />
 		<entities>
-			<player x="2488" y="300" w="64" h="64" texture="Assets/Textures/player/PlayerAnimations.png">
+			<player x="2520" y="300" w="64" h="64" texture="Assets/Textures/player/PlayerAnimations.png">
 				<animations>
 					<idle loop="true" speed="0.3">
 						<frame x="0" y="0" w="64" h="64" />
@@ -73,7 +73,20 @@
 						<frame x="448" y="256" w="64" h="64" />
 						<frame x="512" y="256" w="64" h="64" />
 					</shootup>
-					<die loop="false" speed="0.1">
+					<shootjump loop="false" speed="0.2">
+						<frame x="256" y="128" w="64" h="64" />
+						<frame x="320" y="128" w="64" h="64" />
+						<frame x="384" y="128" w="64" h="64" />
+					</shootjump>
+					<shootupjump loop="false" speed="0.2">
+						<frame x="448" y="128" w="64" h="64" />
+						<frame x="512" y="128" w="64" h="64" />
+						<frame x="576" y="128" w="64" h="64" />
+						<frame x="640" y="128" w="64" h="64" />
+						<frame x="704" y="128" w="64" h="64" />
+						<frame x="768" y="128" w="64" h="64" />
+					</shootupjump>
+					<shootmove loop="false" speed="0.3">
 						<frame x="0" y="320" w="64" h="64" />
 						<frame x="64" y="320" w="64" h="64" />
 						<frame x="128" y="320" w="64" h="64" />
@@ -82,9 +95,29 @@
 						<frame x="320" y="320" w="64" h="64" />
 						<frame x="384" y="320" w="64" h="64" />
 						<frame x="448" y="320" w="64" h="64" />
-						<frame x="512" y="320" w="64" h="64" />
-						<frame x="576" y="320" w="64" h="64" />
-						<frame x="640" y="320" w="64" h="64" />
+					</shootmove>
+					<shootupmove loop="false" speed="0.3">
+						<frame x="0" y="384" w="64" h="64" />
+						<frame x="64" y="384" w="64" h="64" />
+						<frame x="128" y="384" w="64" h="64" />
+						<frame x="192" y="384" w="64" h="64" />
+						<frame x="256" y="384" w="64" h="64" />
+						<frame x="320" y="384" w="64" h="64" />
+						<frame x="384" y="384" w="64" h="64" />
+						<frame x="448" y="384" w="64" h="64" />
+					</shootupmove>
+					<die loop="false" speed="0.1">
+						<frame x="0" y="448" w="64" h="64" />
+						<frame x="64" y="448" w="64" h="64" />
+						<frame x="128" y="448" w="64" h="64" />
+						<frame x="192" y="448" w="64" h="64" />
+						<frame x="256" y="448" w="64" h="64" />
+						<frame x="320" y="448" w="64" h="64" />
+						<frame x="384" y="448" w="64" h="64" />
+						<frame x="448" y="448" w="64" h="64" />
+						<frame x="512" y="448" w="64" h="64" />
+						<frame x="576" y="448" w="64" h="64" />
+						<frame x="640" y="448" w="64" h="64" />
 					</die>
 				</animations>
 			</player>

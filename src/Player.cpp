@@ -41,6 +41,10 @@ bool Player::Start() {
 	fall.LoadAnimations(parameters.child("animations").child("fall"));
 	shoot.LoadAnimations(parameters.child("animations").child("shoot"));
 	shootup.LoadAnimations(parameters.child("animations").child("shootup"));
+	moveShoot.LoadAnimations(parameters.child("animations").child("shootmove"));
+	moveShootUp.LoadAnimations(parameters.child("animations").child("shootupmove"));
+	jumpShoot.LoadAnimations(parameters.child("animations").child("shootjump"));
+	jumpShootUp.LoadAnimations(parameters.child("animations").child("shootupjump"));
 	die.LoadAnimations(parameters.child("animations").child("die"));
 	currentAnimation = &idle;
 
@@ -79,50 +83,49 @@ void Player::ResetPlayerPosition() {
 
 bool Player::Update(float dt)
 {
-	// L08 TODO 5: Add physics to the player - updated player position using physics
 	b2Vec2 velocity = b2Vec2(0, pbody->body->GetLinearVelocity().y);
 	isRunning = false;
 
-	position.getX();
-
 	if (!isDead) {
-		if (!isShooting) {
-			// Move left
-			if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_A) == KEY_REPEAT) {
-				flipSprite = true;
-				velocity.x = -speed * 16;
-				isRunning = true;
-				hflip = SDL_FLIP_HORIZONTAL;
-			}
-
-			// Move right
-			if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_D) == KEY_REPEAT) {
-				flipSprite = false;
-				velocity.x = speed * 16;
-				isRunning = true;
-				hflip = SDL_FLIP_NONE;
-			}
+		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_A) == KEY_REPEAT) {
+			flipSprite = true;
+			velocity.x = -speed * 16;
+			isRunning = true;
+			hflip = SDL_FLIP_HORIZONTAL;
 		}
 
-		// Jump
-		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_SPACE) == KEY_DOWN && !isJumping && !isFalling && !isShooting) {
+		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_D) == KEY_REPEAT) {
+			flipSprite = false;
+			velocity.x = speed * 16;
+			isRunning = true;
+			hflip = SDL_FLIP_NONE;
+		}
+
+		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_SPACE) == KEY_DOWN && !isJumping && !isFalling) {
 			Engine::GetInstance().audio.get()->PlayFx(jumpFxId);
 			pbody->body->ApplyLinearImpulseToCenter(b2Vec2(0, -jumpForce), true);
 			isJumping = true;
 			isFalling = false;
 		}
 
-		// Fly using god mode
-		if (godMode && !isShooting && Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_SPACE) == KEY_REPEAT) {
+		if (godMode && Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_SPACE) == KEY_REPEAT) {
 			pbody->body->ApplyLinearImpulseToCenter(b2Vec2(0, -0.10f), true);
 			isJumping = true;
 			isFalling = false;
 		}
 
-		// Shoot horizontally
-		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_Q) == KEY_REPEAT && !isShooting && !isJumping && !isFalling) {
+		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_Q) == KEY_REPEAT && !isShooting && !isFalling) {
 			isShooting = true;
-			currentAnimation = &shoot;
+			if (isJumping) {
+				currentAnimation = &jumpShoot;
+			}
+			else if (isRunning) {
+				currentAnimation = &moveShoot;
+			}
+			else {
+				currentAnimation = &shoot;
+			}
+
 			Vector2D bulletPosition = GetPosition();
 			bulletPosition.setX(bulletPosition.getX() + (GetDirection().getX() * 28));
 			Bullet* bullet = new Bullet(BulletType::HORIZONTAL);
@@ -135,10 +138,18 @@ bool Player::Update(float dt)
 			Engine::GetInstance().audio.get()->PlayFx(shootFxId);
 		}
 
-		// Shoot vertically
-		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_E) == KEY_REPEAT && !isShooting && !isJumping && !isFalling) {
+		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_E) == KEY_REPEAT && !isShooting && !isFalling) {
 			isShooting = true;
-			currentAnimation = &shootup;
+			if (isJumping) {
+				currentAnimation = &jumpShootUp;
+			}
+			else if (isRunning) {
+				currentAnimation = &moveShootUp;
+			}
+			else {
+				currentAnimation = &shootup;
+			}
+
 			Vector2D bulletPosition = GetPosition();
 			bulletPosition.setY(bulletPosition.getY() - 28);
 
@@ -159,52 +170,66 @@ bool Player::Update(float dt)
 			Engine::GetInstance().audio.get()->PlayFx(shootFxId);
 		}
 
-		if (isShooting && currentAnimation == &shoot && currentAnimation->HasFinished()) {
-			isShooting = false;
-			shoot.Reset();
-		}
-		
-		if (isShooting && currentAnimation == &shootup && currentAnimation->HasFinished()) {
-			isShooting = false;
-			shootup.Reset();
+		if (isShooting) {
+			if (currentAnimation == &shoot && currentAnimation->HasFinished()) {
+				isShooting = false;
+				shoot.Reset();
+			}
+			else if (currentAnimation == &moveShoot && currentAnimation->HasFinished()) {
+				isShooting = false;
+				moveShoot.Reset();
+			}
+			else if (currentAnimation == &jumpShoot && currentAnimation->HasFinished() || isFalling) {
+				isShooting = false;
+				jumpShoot.Reset();
+			}
+			else if (currentAnimation == &shootup && currentAnimation->HasFinished()) {
+				isShooting = false;
+				shootup.Reset();
+			}
+			else if (currentAnimation == &moveShootUp && currentAnimation->HasFinished()) {
+				isShooting = false;
+				moveShootUp.Reset();
+			}
+			else if (currentAnimation == &jumpShootUp && currentAnimation->HasFinished() || isFalling) {
+				isShooting = false;
+				jumpShootUp.Reset();
+			}
 		}
 
 		float verticalVelocity = pbody->body->GetLinearVelocity().y;
 
-		// If the player is jumping, we don't want to apply gravity, we use the current velocity prduced by the jump
-		if (isJumping && !isDead)
-		{
+		if (isJumping && !isDead) {
 			if (verticalVelocity > 0) {
 				currentAnimation = &fall;
 				isFalling = true;
 			}
 			else {
-				currentAnimation = &jump;
+				if (!isShooting) {
+					currentAnimation = &jump;
+				}
 				isFalling = false;
 			}
 
 			velocity.y = pbody->body->GetLinearVelocity().y;
 		}
 
-		// Update animation state
-		if (isShooting) {
-			
-		}
-		else if (isJumping && !isFalling) {
-			currentAnimation = &jump;
-		}
-		else if (isFalling) {
-			currentAnimation = &fall;
-		}
-		else if (isRunning) {
-			currentAnimation = &move;
-		}
-		else {
-			currentAnimation = &idle;
+		if (!isShooting) {
+			if (isJumping && !isFalling) {
+				currentAnimation = &jump;
+			}
+			else if (isFalling) {
+				currentAnimation = &fall;
+			}
+			else if (isRunning) {
+				currentAnimation = &move;
+			}
+			else {
+				currentAnimation = &idle;
+			}
 		}
 	}
 
-	// Logica del player si está muerto
 	if (isDead) {
 		if (currentAnimation == &die && currentAnimation->HasFinished()) {
 			die.Reset();
@@ -216,28 +241,16 @@ bool Player::Update(float dt)
 		respawn = false;
 	}
 
-	//godmode
 	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F10) == KEY_DOWN) {
 		godMode = !godMode;
-		if (godMode) {
-			LOG("God mode on");
-		}
-		else {
-			LOG("God mode off");
-		}
-
 	}
 
-	//die
 	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F8) == KEY_DOWN) {
 		Engine::GetInstance().audio.get()->PlayFx(dieFxId);
 		isDead = true;
 		currentAnimation = &die;
-
 	}
 
-
-	// Apply the velocity to the player
 	pbody->body->SetLinearVelocity(velocity);
 
 	b2Transform pbodyPos = pbody->body->GetTransform();

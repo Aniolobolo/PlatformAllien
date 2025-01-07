@@ -79,6 +79,10 @@ public:
 	Animation fall;
 	Animation shoot;
 	Animation shootup;
+	Animation jumpShoot;
+	Animation jumpShootUp;
+	Animation moveShoot;
+	Animation moveShootUp;
 	Animation die;
 
 	std::vector<Bullet*> bulletList;

@@ -3,8 +3,20 @@
 #include "Window.h"
 #include "Render.h"
 #include "Log.h"
+#include "SDL2/SDL.h"
+#include "SDL2/SDL_ttf.h"
 
 #define VSYNC true
+
+struct Button {
+	SDL_Rect rect;
+	const char* text;
+	SDL_Color color;
+	SDL_Color hoverColor;
+	bool isHovered;
+};
+
+Button buttons[5];
 
 Render::Render() : Module()
 {
@@ -19,7 +31,67 @@ Render::Render() : Module()
 Render::~Render()
 {}
 
-// Called before render is available
+void Render::InitButtons()
+{
+	int buttonWidth = 200;
+	int buttonHeight = 50;
+	int startX = 100;
+	int startY = 100;
+	int spacing = 10;
+
+	for (int i = 0; i < 5; ++i) {
+		buttons[i].rect = { startX, startY + i * (buttonHeight + spacing), buttonWidth, buttonHeight };
+		buttons[i].text = "Button";
+		buttons[i].color = { 255, 255, 255, 255 }; // Blanco
+		buttons[i].hoverColor = { 200, 200, 200, 255 }; // Gris claro
+		buttons[i].isHovered = false;
+	}
+}
+
+void Render::HandleHover(int mouseX, int mouseY)
+{
+	for (int i = 0; i < 5; ++i) {
+		if (mouseX >= buttons[i].rect.x && mouseX <= buttons[i].rect.x + buttons[i].rect.w &&
+			mouseY >= buttons[i].rect.y && mouseY <= buttons[i].rect.y + buttons[i].rect.h) {
+			buttons[i].isHovered = true;
+		}
+		else {
+			buttons[i].isHovered = false;
+		}
+	}
+}
+
+bool Render::DrawText(const char* text, int x, int y, int w, int h, SDL_Color color) const
+{
+	TTF_Font* font = TTF_OpenFont("path/to/font.ttf", 24);
+	if (font == nullptr)
+	{
+		return false;
+	}
+
+	SDL_Surface* surface = TTF_RenderText_Solid(font, text, color);
+	if (surface == nullptr)
+	{
+		TTF_CloseFont(font);
+		return false;
+	}
+
+	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+	SDL_FreeSurface(surface);
+	if (texture == nullptr)
+	{
+		TTF_CloseFont(font);
+		return false;
+	}
+
+	SDL_Rect dstRect = { x, y, w, h };
+	SDL_RenderCopy(renderer, texture, nullptr, &dstRect);
+	SDL_DestroyTexture(texture);
+	TTF_CloseFont(font);
+
+	return true;
+}
+
 bool Render::Awake()
 {
 	LOG("Create SDL rendering context");
@@ -27,7 +99,6 @@ bool Render::Awake()
 
 	Uint32 flags = SDL_RENDERER_ACCELERATED;
 
-	//L05 TODO 5 - Load the configuration of the Render module
 	if (configParameters.child("vsync").attribute("value").as_bool() == true) {
 		usingVsync = true;
 	}
@@ -36,7 +107,7 @@ bool Render::Awake()
 	SDL_Window* window = Engine::GetInstance().window.get()->window;
 	renderer = SDL_CreateRenderer(window, -1, flags);
 
-	if(renderer == NULL)
+	if (renderer == NULL)
 	{
 		LOG("Could not create the renderer! SDL_Error: %s\n", SDL_GetError());
 		ret = false;
@@ -49,8 +120,34 @@ bool Render::Awake()
 		camera.y = 0;
 	}
 
+	InitButtons();
+
 	return ret;
 }
+
+bool Render::Update(float dt)
+{
+	int mouseX, mouseY;
+	SDL_GetMouseState(&mouseX, &mouseY);
+	HandleHover(mouseX, mouseY);
+
+	for (int i = 0; i < 5; ++i) {
+		SDL_Color color = buttons[i].isHovered ? buttons[i].hoverColor : buttons[i].color;
+		DrawRectangle(buttons[i].rect, color.r, color.g, color.b, color.a, true, false);
+		DrawText(buttons[i].text, buttons[i].rect.x, buttons[i].rect.y, buttons[i].rect.w, buttons[i].rect.h, { 0, 0, 0, 255 });
+	}
+
+	return true;
+}
+
+bool Render::DrawText(const char* text, int x, int y, int w, int h) const
+{
+	SDL_Color color = { 255, 255, 255, 255 }; // Color blanco
+	return DrawText(text, x, y, w, h, color);
+}
+
+// Called before render is available
+
 
 // Called before the first frame
 bool Render::Start()
@@ -68,19 +165,7 @@ bool Render::PreUpdate()
 	return true;
 }
 
-bool Render::Update(float dt)
-{
-	Uint32 flags = SDL_RENDERER_ACCELERATED;
-	
-	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F5) == KEY_DOWN) {
-		usingVsync = !usingVsync;
-	}
-	
-	if (usingVsync) {
-		flags |= SDL_RENDERER_PRESENTVSYNC;
-	}
-	return true;
-}
+
 
 bool Render::PostUpdate()
 {
@@ -234,4 +319,5 @@ bool Render::DrawCircle(int x, int y, int radius, Uint8 r, Uint8 g, Uint8 b, Uin
 	}
 
 	return ret;
+
 }

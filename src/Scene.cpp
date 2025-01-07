@@ -99,8 +99,7 @@ bool Scene::Update(float dt)
         else {
             Engine::GetInstance().render.get()->camera.x = 0;
         }
-    }
-    
+    }    
 
 	// Mostrar el menú de controles
     if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_H) == KEY_DOWN) {

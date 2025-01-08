@@ -71,6 +71,9 @@ bool Player::Start() {
 
 void Player::ResetPlayerPosition() {
 	respawn = true;
+	hasToUpdateCam = true;
+	powerUpJumpActive = false;
+	powerUpSpeedActive = false;
 	isJumping = false;
 	isFalling = false;
 	isDead = false;
@@ -127,7 +130,7 @@ bool Player::Update(float dt)
 			}
 
 			Vector2D bulletPosition = GetPosition();
-			bulletPosition.setX(bulletPosition.getX() + (GetDirection().getX() * 28));
+			bulletPosition.setX(bulletPosition.getX() + (GetDirection().getX() * 30));
 			Bullet* bullet = new Bullet(BulletType::HORIZONTAL);
 			bullet->SetDirection(GetDirection());
 			bullet->SetParameters(Engine::GetInstance().scene.get()->configParameters);
@@ -230,6 +233,21 @@ bool Player::Update(float dt)
 		}
 	}
 
+	if (powerUpJumpActive) {
+		jumpForce = powerUpJump;
+	}
+	else
+	{
+		jumpForce = originalJumpForce;
+	}
+
+	if (powerUpSpeedActive) {
+		speed = powerUpSpeed;
+	}
+	else {
+		speed = originalSpeed;
+	}
+
 	if (isDead) {
 		if (currentAnimation == &die && currentAnimation->HasFinished()) {
 			die.Reset();
@@ -286,11 +304,15 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 		LOG("Collision ITEM");
 		Engine::GetInstance().audio.get()->PlayFx(pickCoinFxId);
 		break;
-	case ColliderType::POWERUP:
+	case ColliderType::POWERUPJUMP:
 		LOG("Collision ITEM");
-		//hacer aqui la power up
+		powerUpJumpActive = true;
 		Engine::GetInstance().audio.get()->PlayFx(pickCoinFxId);
-
+		break;
+	case ColliderType::POWERUPSPEED:
+		LOG("Collision ITEM");
+		powerUpSpeedActive = true;
+		Engine::GetInstance().audio.get()->PlayFx(pickCoinFxId);
 		break;
 	case ColliderType::HAZARD:
 		if (!isDead && !godMode) {

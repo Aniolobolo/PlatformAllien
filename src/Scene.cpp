@@ -39,9 +39,15 @@ bool Scene::Awake()
         coin->SetParameters(itemNode);
         itemList.push_back(coin);
     }
-    for (pugi::xml_node powerNode = configParameters.child("entities").child("items").child("powerups").child("powerup"); powerNode; powerNode = powerNode.next_sibling("powerup"))
+    for (pugi::xml_node powerNode = configParameters.child("entities").child("items").child("powerups").child("powerupjump"); powerNode; powerNode = powerNode.next_sibling("powerupjump"))
     {
-        Item* powerup = (Item*)Engine::GetInstance().entityManager->CreateEntity(EntityType::POWERUP);
+        Item* powerup = (Item*)Engine::GetInstance().entityManager->CreateEntity(EntityType::POWERUPJUMP);
+        powerup->SetParameters(powerNode);
+        itemList.push_back(powerup);
+    }
+    for (pugi::xml_node powerNode = configParameters.child("entities").child("items").child("powerups").child("powerupspeed"); powerNode; powerNode = powerNode.next_sibling("powerupspeed"))
+    {
+        Item* powerup = (Item*)Engine::GetInstance().entityManager->CreateEntity(EntityType::POWERUPSPEED);
         powerup->SetParameters(powerNode);
         itemList.push_back(powerup);
     }
@@ -79,8 +85,6 @@ bool Scene::Start()
     Engine::GetInstance().map->Load(configParameters.child("map").attribute("path").as_string(), configParameters.child("map").attribute("name").as_string());
     controls = Engine::GetInstance().textures->Load("Assets/Textures/Help.png");
 
-    Engine::GetInstance().map->Load(configParameters.child("map").attribute("path").as_string(), configParameters.child("map").attribute("name").as_string());
-
     bgMusic = Engine::GetInstance().audio->PlayMusic("Assets/Audio/Music/music.ogg", 0);
 
     int musicVolume = 40;
@@ -98,18 +102,22 @@ bool Scene::PreUpdate()
 // Called each loop iteration
 bool Scene::Update(float dt)
 {
-    // Si el jugador no está en respawn y está dentro de los intervalos, mueve la cámara
     if (player->position.getX() >= 525 && !player->isDead && player->position.getX() <= 3350) {
         Engine::GetInstance().render.get()->camera.x = 500 - player->position.getX();
     }
-    else if (player->respawn) {
+
+    if (cameraNeedsUpdate || player->hasToUpdateCam) {
+        player->hasToUpdateCam = false;
+        cameraNeedsUpdate = false;
         if (player->reachedCheckpoint) {
             Engine::GetInstance().render.get()->camera.x = 2460;
         }
         else {
             Engine::GetInstance().render.get()->camera.x = 0;
         }
-    }   
+
+        LOG("Camera manually updated in Update to: %d", Engine::GetInstance().render.get()->camera.x);
+    }
 
     if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F3) == KEY_DOWN) {
         Engine::GetInstance().render.get()->camera.x = 0;
@@ -197,6 +205,8 @@ void Scene::LoadState() {
             static_cast<float>(playerNode.attribute("x").as_int() - 32),
             static_cast<float>(playerNode.attribute("y").as_int() - 32)
         );
+        cameraNeedsUpdate = true;
+
         player->SetPosition(playerPos);
     }
 

@@ -207,6 +207,9 @@ void EnemyFloor::OnCollision(PhysBody* physA, PhysBody* physB) {
         }
         Engine::GetInstance().entityManager.get()->DestroyEntity(physB->listener);
         break;
+    case ColliderType::ENEMYBULLET:
+        Engine::GetInstance().entityManager.get()->DestroyEntity(physB->listener);
+        break;
     case ColliderType::VOID:
         LOG("Collided with hazard - DESTROY");
         isalive = false;

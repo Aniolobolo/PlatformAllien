@@ -61,6 +61,17 @@ public:
 	// L08 TODO 5: Add physics to the player - declare a Physics body
 	PhysBody* pbody;
 	float jumpForce = 2.5f; // The force to apply when jumping
+
+	float originalJumpForce = 2.5f;
+	float powerUpJump = 3.25f;
+	float originalSpeed = 0.3f;
+	float powerUpSpeed = 0.4f;
+
+	bool powerUpJumpActive = false;
+	bool powerUpSpeedActive = false;
+
+	bool hasToUpdateCam = false;
+
 	bool isJumping = false; // Flag to check if the player is currently jumping
 	bool canJump;
 	bool isFalling = false;

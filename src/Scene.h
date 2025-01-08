@@ -62,6 +62,8 @@ private:
 	SDL_Texture* controls = nullptr;
 	int bgMusic;
 
+	bool cameraNeedsUpdate = false;
+
 	//L03: TODO 3b: Declare a Player attribute
 	Player* player;
 	Checkpoint* checkP;

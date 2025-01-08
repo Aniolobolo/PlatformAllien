@@ -81,12 +81,12 @@ bool Bullet::Update(float dt) {
 
     b2Vec2 velocity = pbody->body->GetLinearVelocity();
     if (type == BulletType::HORIZONTAL || type == BulletType::BOSSH) {
-        velocity.x = direction.getX() * 7.0f;  // Velocidad constante en la dirección horizontal
+        velocity.x = direction.getX() * 7.5f;  // Velocidad constante en la dirección horizontal
         velocity.y = 0.0f;  // Sin movimiento vertical
     }
     else if (type == BulletType::VERTICAL) {
         velocity.x = 0.0f;  // Sin movimiento horizontal
-        velocity.y = direction.getY() * 7.0f;  // Velocidad constante en la dirección vertical
+        velocity.y = direction.getY() * 9.0f;  // Velocidad constante en la dirección vertical
     }
     pbody->body->SetLinearVelocity(velocity);
 
@@ -137,6 +137,9 @@ void Bullet::OnCollision(PhysBody* physA, PhysBody* physB) {
     case ColliderType::HAZARD:
     case ColliderType::CHECKPOINT:
     case ColliderType::ITEM:
+    case ColliderType::ENEMYBULLET:
+    case ColliderType::BULLET:
+    case ColliderType::PLAYER:
         LOG("Collided - DESTROY");
         isAlive = false;
         Engine::GetInstance().entityManager.get()->DestroyEntity(this);
@@ -150,6 +153,7 @@ void Bullet::OnCollisionEnd(PhysBody* physA, PhysBody* physB) {
     case ColliderType::HAZARD:
     case ColliderType::CHECKPOINT:
     case ColliderType::ITEM:
+    case ColliderType::ENEMYBULLET:
         LOG("Collided with hazard - DESTROY");
         break;
     }

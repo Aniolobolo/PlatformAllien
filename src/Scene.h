@@ -39,6 +39,11 @@ public:
 	// Called before quitting
 	bool CleanUp();
 
+	void ClearEntities();
+
+	// Draw player health hud
+	void UpdatePlayerHUD();
+
 	// Return the player position
 	Vector2D GetPlayerPosition();
 
@@ -60,9 +65,25 @@ private:
 	SDL_Texture* img;
 	bool areControlsVisible = false;
 	SDL_Texture* controls = nullptr;
+	SDL_Texture* gameOver = nullptr;
 	int bgMusic;
 
 	bool cameraNeedsUpdate = false;
+
+	SDL_Texture* pHealth3;
+	SDL_Texture* pHealth2;
+	SDL_Texture* pHealth1;
+	SDL_Texture* pHealth0;
+
+	SDL_Texture* bHealth4;
+	SDL_Texture* bHealth3;
+	SDL_Texture* bHealth2;
+	SDL_Texture* bHealth1;
+	SDL_Texture* bHealth0;
+
+	bool hasStarted = false;
+	bool hasChosenLevel1 = false;
+	bool hasChosenLevel2 = false;
 
 	//L03: TODO 3b: Declare a Player attribute
 	Player* player;

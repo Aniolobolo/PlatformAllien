@@ -79,6 +79,15 @@ void Player::ResetPlayerPosition() {
 	isDead = false;
 	isShooting = false;
 
+	if (!(lives <= 0)) {
+		lives--;
+		hasLost = false;
+	}
+	else {
+		LOG("PLAYER HAS LOST - GAME OVER");
+		hasLost = true;
+	}
+
 	currentAnimation = &idle;
 	pbody->body->SetLinearVelocity(b2Vec2(0, -0.1f));
 	Engine::GetInstance().scene.get()->LoadState();
@@ -313,6 +322,12 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 		LOG("Collision ITEM");
 		powerUpSpeedActive = true;
 		Engine::GetInstance().audio.get()->PlayFx(pickCoinFxId);
+		break;
+	case ColliderType::HEALTH:
+		lives++;
+		if (lives >= 3) {
+			lives = 3;
+		}
 		break;
 	case ColliderType::HAZARD:
 		if (!isDead && !godMode) {

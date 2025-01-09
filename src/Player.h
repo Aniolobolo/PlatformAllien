@@ -58,6 +58,9 @@ public:
 	int shootFxId;
 	int jumpFxId;
 
+	int lives = 3;
+	bool hasLost = false;
+
 	// L08 TODO 5: Add physics to the player - declare a Physics body
 	PhysBody* pbody;
 	float jumpForce = 2.5f; // The force to apply when jumping

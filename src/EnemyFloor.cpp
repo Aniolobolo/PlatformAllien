@@ -233,14 +233,18 @@ void EnemyFloor::OnCollisionEnd(PhysBody* physA, PhysBody* physB) {
         LOG("Collision hazard");
         break;
     case ColliderType::PLATFORM:
-        isOnFloor = false;
-        currentAnimation = &fall;
-        isFalling = true;
+        if (!isDying) {
+            isOnFloor = false;
+            currentAnimation = &fall;
+            isFalling = true;
+        }
         break;
     case ColliderType::HAZARD:
-        isOnFloor = false;
-        currentAnimation = &fall;
-        isFalling = true;
+        if (!isDying) {
+            isOnFloor = false;
+            currentAnimation = &fall;
+            isFalling = true;
+        }
         break;
     }
 }

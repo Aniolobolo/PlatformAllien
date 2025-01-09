@@ -8,6 +8,7 @@ struct SDL_Texture;
 
 enum class ItemType {
 	COLLECT,
+	HEALTH,
 	POWERUPJUMP,
 	POWERUPSPEED
 };
@@ -47,6 +48,7 @@ private:
 
 	Animation* currentAnimation = nullptr;
 	Animation coin;
+	Animation health;
 	Animation powerupJump;
 	Animation powerupSpeed;
 	//L08 TODO 4: Add a physics to an item

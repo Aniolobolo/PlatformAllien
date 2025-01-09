@@ -72,6 +72,7 @@ private:
 	Animation idle;
 	Animation move;
 	Animation shoot;
+	Animation shootD;
 	Animation die;
 
 	PhysBody* pbody;

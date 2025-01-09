@@ -61,7 +61,7 @@ bool Bullet::Start() {
     pbody->body->SetGravityScale(0);
 
     // Establecer tipo de colisión
-    if (BulletType::BOSSH == type) {
+    if (BulletType::BOSSH == type || BulletType::BOSSV == type) {
         pbody->ctype = ColliderType::ENEMYBULLET;
     }
     else
@@ -85,6 +85,10 @@ bool Bullet::Update(float dt) {
         velocity.y = 0.0f;  // Sin movimiento vertical
     }
     else if (type == BulletType::VERTICAL) {
+        velocity.x = 0.0f;  // Sin movimiento horizontal
+        velocity.y = direction.getY() * 9.0f;  // Velocidad constante en la dirección vertical
+    }
+    else if (type == BulletType::BOSSV) {
         velocity.x = 0.0f;  // Sin movimiento horizontal
         velocity.y = direction.getY() * 9.0f;  // Velocidad constante en la dirección vertical
     }
@@ -137,14 +141,25 @@ void Bullet::OnCollision(PhysBody* physA, PhysBody* physB) {
     case ColliderType::HAZARD:
     case ColliderType::CHECKPOINT:
     case ColliderType::ITEM:
-    case ColliderType::ENEMYBULLET:
-    case ColliderType::BULLET:
-    case ColliderType::PLAYER:
         LOG("Collided - DESTROY");
         isAlive = false;
         Engine::GetInstance().entityManager.get()->DestroyEntity(this);
         break;
-    }   
+    case ColliderType::ENEMYBULLET:
+        if (type == BulletType::HORIZONTAL || type == BulletType::VERTICAL) {
+            isAlive = false;
+            Engine::GetInstance().entityManager.get()->DestroyEntity(this);
+            Engine::GetInstance().physics.get()->DeletePhysBody(physB);
+        }
+        break;
+    case ColliderType::BULLET:
+        if (type == BulletType::BOSSH || type == BulletType::BOSSV) {
+            isAlive = false;
+            Engine::GetInstance().entityManager.get()->DestroyEntity(this);
+            Engine::GetInstance().physics.get()->DeletePhysBody(physB);
+        }
+        break;
+    }
 }
 
 void Bullet::OnCollisionEnd(PhysBody* physA, PhysBody* physB) {

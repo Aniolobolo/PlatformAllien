@@ -32,6 +32,7 @@ bool Boss::Start() {
 	idle.LoadAnimations(parameters.child("animations").child("idle"));
 	move.LoadAnimations(parameters.child("animations").child("move"));
 	shoot.LoadAnimations(parameters.child("animations").child("shoot"));
+	shootD.LoadAnimations(parameters.child("animations").child("shootdown"));
 	die.LoadAnimations(parameters.child("animations").child("die"));
 	currentAnimation = &idle;
 	pbody = Engine::GetInstance().physics.get()->CreateCircle((int)position.getX() + texH / 4, (int)position.getY() + texH / 4, texH / 4, bodyType::DYNAMIC);
@@ -117,9 +118,25 @@ bool Boss::Update(float dt) {
 			Engine::GetInstance().audio.get()->PlayFx(shootFxId);
 		}
 
+		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_O) == KEY_REPEAT && !isShooting && currentAnimation == &idle) {
+			isShooting = true;
+			currentAnimation = &shootD;
+			Vector2D bulletPosition = GetPosition();
+			bulletPosition.setY(bulletPosition.getY() + (GetDirection().getY() + 28));
+			Bullet* bullet = new Bullet(BulletType::BOSSV);
+			bullet->SetDirection(GetDirection());
+			bullet->SetParameters(Engine::GetInstance().scene.get()->configParameters);
+			bullet->texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/enemies/bossBullet.png");
+			Engine::GetInstance().entityManager.get()->AddEntity(bullet);
+			bullet->Start();
+			bullet->SetPosition(bulletPosition);
+			Engine::GetInstance().audio.get()->PlayFx(shootFxId);
+		}
+
 		if (isShooting && currentAnimation->HasFinished()) {
 			isShooting = false;
 			shoot.Reset();
+			shootD.Reset();
 			currentAnimation = &idle;
 		}
 

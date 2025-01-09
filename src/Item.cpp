@@ -31,6 +31,7 @@ bool Item::Start() {
     coin.LoadAnimations(parameters.child("animations").child("coin"));
     powerupJump.LoadAnimations(parameters.child("animations").child("powerupJ"));
     powerupSpeed.LoadAnimations(parameters.child("animations").child("powerupS"));
+    health.LoadAnimations(parameters.child("animations").child("health"));
 
     // L08 TODO 4: Add a physics to an item - initialize the physics body
     Engine::GetInstance().textures.get()->GetSize(texture, texW, texH);
@@ -40,6 +41,10 @@ bool Item::Start() {
     if (itemType == ItemType::COLLECT) {
         currentAnimation = &coin;
         pbody->ctype = ColliderType::ITEM;
+    }
+    else if (itemType == ItemType::HEALTH) {
+        currentAnimation = &health;
+        pbody->ctype = ColliderType::HEALTH;
     }
     else if (itemType == ItemType::POWERUPJUMP) {
         currentAnimation = &powerupJump;
@@ -58,8 +63,8 @@ bool Item::Start() {
 bool Item::Update(float dt)
 {
     b2Transform pbodyPos = pbody->body->GetTransform();
-    position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texH / 6);
-    position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH / 6);
+    position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texH / 8);
+    position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH / 8);
 
     Engine::GetInstance().render.get()->DrawTexture(texture, (int)position.getX(), (int)position.getY(), &currentAnimation->GetCurrentFrame());
     currentAnimation->Update();

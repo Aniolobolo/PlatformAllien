@@ -28,6 +28,8 @@ bool Scene::Awake()
     LOG("Loading Scene");
     bool ret = true;
 
+    Engine::GetInstance().map->CleanUp();
+
     //L04: TODO 3b: Instantiate the player using the entity manager
     player = (Player*)Engine::GetInstance().entityManager->CreateEntity(EntityType::PLAYER);
     player->SetParameters(configParameters.child("entities").child("player"));
@@ -38,6 +40,12 @@ bool Scene::Awake()
         Item* coin = (Item*)Engine::GetInstance().entityManager->CreateEntity(EntityType::ITEM);
         coin->SetParameters(itemNode);
         itemList.push_back(coin);
+    }
+    for (pugi::xml_node itemNode = configParameters.child("entities").child("items").child("healths").child("health"); itemNode; itemNode = itemNode.next_sibling("health"))
+    {
+        Item* health = (Item*)Engine::GetInstance().entityManager->CreateEntity(EntityType::HEALTH);
+        health->SetParameters(itemNode);
+        itemList.push_back(health);
     }
     for (pugi::xml_node powerNode = configParameters.child("entities").child("items").child("powerups").child("powerupjump"); powerNode; powerNode = powerNode.next_sibling("powerupjump"))
     {
@@ -84,10 +92,15 @@ bool Scene::Start()
     //L06 TODO 3: Call the function to load the map. 
     Engine::GetInstance().map->Load(configParameters.child("map").attribute("path").as_string(), configParameters.child("map").attribute("name").as_string());
     controls = Engine::GetInstance().textures->Load("Assets/Textures/Help.png");
+    gameOver = Engine::GetInstance().textures->Load("Assets/Textures/Screens/lossScreen.png");
+    pHealth3 = Engine::GetInstance().textures->Load("Assets/Textures/HUD/playerHealth3.png");
+    pHealth2 = Engine::GetInstance().textures->Load("Assets/Textures/HUD/playerHealth2.png");
+    pHealth1 = Engine::GetInstance().textures->Load("Assets/Textures/HUD/playerHealth1.png");
+    pHealth0 = Engine::GetInstance().textures->Load("Assets/Textures/HUD/playerHealth0.png");
 
-    bgMusic = Engine::GetInstance().audio->PlayMusic("Assets/Audio/Music/music.ogg", 0);
+    bgMusic = Engine::GetInstance().audio->PlayMusic("Assets/Audio/Music/level1.ogg", 0);
 
-    int musicVolume = 40;
+    int musicVolume = 60;
     Mix_VolumeMusic(musicVolume);
 
     return true;
@@ -102,6 +115,8 @@ bool Scene::PreUpdate()
 // Called each loop iteration
 bool Scene::Update(float dt)
 {
+    UpdatePlayerHUD();
+
     if (player->position.getX() >= 525 && !player->isDead && player->position.getX() <= 3350) {
         Engine::GetInstance().render.get()->camera.x = 500 - player->position.getX();
     }
@@ -125,6 +140,25 @@ bool Scene::Update(float dt)
 
     }
 
+    if (player->hasLost) {
+        // Mostrar pantalla de Game Over
+        int width, height;
+        Engine::GetInstance().textures->GetSize(gameOver, width, height);
+        int windowWidth, windowHeight;
+        Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
+
+        SDL_Rect dstRect = { 0, 0, width, height };
+        SDL_RenderCopy(Engine::GetInstance().render->renderer, gameOver, nullptr, &dstRect);
+
+        if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_R) == KEY_DOWN) {
+            player->hasLost = false;
+            player->lives = 3;
+
+            // Restablecer la escena (si es necesario)
+        }
+    }
+
+
 	// Mostrar el menú de controles
     if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_H) == KEY_DOWN) {
         areControlsVisible = !areControlsVisible;
@@ -141,6 +175,14 @@ bool Scene::Update(float dt)
         SDL_RenderCopy(Engine::GetInstance().render->renderer, controls, nullptr, &dstRect);
     }
 
+    	// Comprobar si el jugador ha llegado al checkpoint
+    if (!hasReachedCheckpoint) {
+        if (checkP->hasSounded) {
+            SaveState();
+            hasReachedCheckpoint = true;
+        }
+    }
+
     return true;
 }
 
@@ -155,15 +197,7 @@ bool Scene::PostUpdate()
         LoadState();
 
     if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F5) == KEY_DOWN)
-        SaveState();        
-
-	// Comprobar si el jugador ha llegado al checkpoint
-    if (!hasReachedCheckpoint) {
-        if (checkP->hasSounded) {
-            SaveState();
-            hasReachedCheckpoint = true;
-        }
-    }
+        SaveState();
 
     return ret;
 }
@@ -179,6 +213,50 @@ bool Scene::CleanUp()
         controls = nullptr;
     }
     return true;
+}
+
+void Scene::UpdatePlayerHUD()
+{
+    if (player->lives == 3) {
+        int width, height;
+        Engine::GetInstance().textures->GetSize(pHealth3, width, height);
+        int windowWidth, windowHeight;
+        Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
+
+        SDL_Rect dstRect = { 10, 10, width, height };
+
+        SDL_RenderCopy(Engine::GetInstance().render->renderer, pHealth3, nullptr, &dstRect);
+    }
+    else if (player->lives == 2) {
+        int width, height;
+        Engine::GetInstance().textures->GetSize(pHealth2, width, height);
+        int windowWidth, windowHeight;
+        Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
+
+        SDL_Rect dstRect = { 10, 10, width, height };
+
+        SDL_RenderCopy(Engine::GetInstance().render->renderer, pHealth2, nullptr, &dstRect);
+    }
+    else if (player->lives == 1) {
+        int width, height;
+        Engine::GetInstance().textures->GetSize(pHealth1, width, height);
+        int windowWidth, windowHeight;
+        Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
+
+        SDL_Rect dstRect = { 10, 10, width, height };
+
+        SDL_RenderCopy(Engine::GetInstance().render->renderer, pHealth1, nullptr, &dstRect);
+    }
+    else if (player->lives == 0) {
+        int width, height;
+        Engine::GetInstance().textures->GetSize(pHealth0, width, height);
+        int windowWidth, windowHeight;
+        Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
+
+        SDL_Rect dstRect = { 10, 10, width, height };
+
+        SDL_RenderCopy(Engine::GetInstance().render->renderer, pHealth0, nullptr, &dstRect);
+    }
 }
 
 Vector2D Scene::GetPlayerPosition()

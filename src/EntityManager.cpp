@@ -86,6 +86,9 @@ Entity* EntityManager::CreateEntity(EntityType type)
     case EntityType::ITEM:
         entity = new Item(ItemType::COLLECT);
         break;
+    case EntityType::HEALTH:
+        entity = new Item(ItemType::HEALTH);
+        break;
     case EntityType::POWERUPJUMP:
         entity = new Item(ItemType::POWERUPJUMP);
         break;

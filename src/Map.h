@@ -153,6 +153,8 @@ public:
 
     MapLayer* GetNavigationLayer();
 
+    void ClearCollisions();
+
 
 public:
     std::string mapFileName;

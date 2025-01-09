@@ -26,7 +26,7 @@ GuiControl* GuiManager::CreateGuiControl(GuiControlType type, int id, const char
 	switch (type)
 	{
 	case GuiControlType::BUTTON:
-		guiControl = new GuiControlButton(id, bounds, text);
+		guiControl = static_cast<GuiControl*>(new GuiControlButton(id, bounds, text));
 		break;
 	}
 

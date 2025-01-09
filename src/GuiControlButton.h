@@ -1,23 +1,19 @@
 #pragma once
+#include "SDL2/SDL.h"
+#include <functional>
 
-#include "GuiControl.h"
-#include "Vector2D.h"
-
-class GuiControlButton : public GuiControl
+class GuiControlButton
 {
 
-public:
+	GuiControlButton(int id, SDL_Rect rect, const char* text);
+	void HandleEvent(SDL_Event* event);
+	void Update(float dt);
+	void Draw(SDL_Renderer* renderer);
+	int id;
+	SDL_Rect rect;
+	std::function<void()> onClick;
+	bool isHovered;
 
-	GuiControlButton(int id, SDL_Rect bounds, const char* text);
-	virtual ~GuiControlButton();
-
-	// Called each loop iteration
-	bool Update(float dt);
-
-private:
-
-	bool canClick = true;
-	bool drawBasic = false;
 };
 
 

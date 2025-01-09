@@ -1,53 +1,41 @@
-#pragma once
+#ifndef __RENDER_H__
+#define __RENDER_H__
 
 #include "Module.h"
-#include "Vector2D.h"
 #include "SDL2/SDL.h"
+#include "GuiControlButton.h"
 
 class Render : public Module
 {
 public:
+    Render();
+    virtual ~Render();
 
-	Render();
+    bool Awake(pugi::xml_node&);
+    bool Start();
+    bool PreUpdate();
+    bool Update(float dt);
+    bool PostUpdate();
+    bool CleanUp();
 
-	// Destructor
-	virtual ~Render();
+    void InitButtons();
+    void HandleHover(int mouseX, int mouseY);
+    void HandleEvent(SDL_Event* event);
+    bool Draw();
+    bool DrawText(const char* text, int x, int y, int w, int h) const;
+    bool DrawTexture(SDL_Texture* texture, int x, int y, const SDL_Rect* section, SDL_RendererFlip flip_, float speed, double angle, int pivotX, int pivotY) const;
+    bool DrawRectangle(const SDL_Rect& rect, Uint8 r, Uint8 g, Uint8 b, Uint8 a, bool filled, bool use_camera) const;
+    bool DrawLine(int x1, int y1, int x2, int y2, Uint8 r, Uint8 g, Uint8 b, Uint8 a, bool use_camera) const;
 
-	// Called before render is available
-	bool Awake();
-
-	// Called before the first frame
-	bool Start();
-
-	// Called each loop iteration
-	bool PreUpdate();
-	bool Update(float dt);
-	bool PostUpdate();
-
-	// Called before quitting
-	bool CleanUp();
-
-	void SetViewPort(const SDL_Rect& rect);
-	void ResetViewPort();
-
-	// Drawing
-	bool DrawTexture(SDL_Texture* texture, int x, int y, const SDL_Rect* section = NULL, SDL_RendererFlip flip_ = SDL_FLIP_NONE, float speed = 1.0f, double angle = 0, int pivotX = INT_MAX, int pivotY = INT_MAX) const;
-	bool DrawRectangle(const SDL_Rect& rect, Uint8 r, Uint8 g, Uint8 b, Uint8 a = 255, bool filled = true, bool useCamera = true) const;
-	bool DrawLine(int x1, int y1, int x2, int y2, Uint8 r, Uint8 g, Uint8 b, Uint8 a = 255, bool useCamera = true) const;
-	bool DrawCircle(int x1, int y1, int redius, Uint8 r, Uint8 g, Uint8 b, Uint8 a = 255, bool useCamera = true) const;
-	bool DrawText(const char* text, int posX, int posY, int w, int h) const;
-	bool DrawText(const char* text, int x, int y, int w, int h, SDL_Color color) const;
-
-	void InitButtons();
-	void HandleHover(int mouseX, int mouseY);
-
-	// Set background color
-	void SetBackgroundColor(SDL_Color color);
-
-public:
-	bool usingVsync;
-	SDL_Renderer* renderer;
-	SDL_Rect camera;
-	SDL_Rect viewport;
-	SDL_Color background;
+    void SetBackgroundColor(SDL_Color color);
+    void SetViewPort(const SDL_Rect& rect);
+    void ResetViewPort();
+    SDL_Renderer* renderer;
+    SDL_Rect camera;
+    SDL_Rect viewport;
+    SDL_Color background;
+    bool usingVsync;
+    GuiControlButton buttons[5];
 };
+
+#endif // __RENDER_H__

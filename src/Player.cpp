@@ -9,6 +9,7 @@
 #include "Physics.h"
 #include "EntityManager.h"
 #include "Bullet.h"
+#include "tracy/Tracy.hpp"
 
 Player::Player() : Entity(EntityType::PLAYER)
 {
@@ -95,6 +96,7 @@ void Player::ResetPlayerPosition() {
 
 bool Player::Update(float dt)
 {
+	ZoneScoped;
 	b2Vec2 velocity = b2Vec2(0, pbody->body->GetLinearVelocity().y);
 	isRunning = false;
 

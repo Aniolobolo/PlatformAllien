@@ -10,6 +10,7 @@
 #include "Bullet.h"
 #include "EnemyFloor.h"
 #include "Boss.h"
+#include "tracy/Tracy.hpp"
 
 EntityManager::EntityManager() : Module()
 {
@@ -149,6 +150,7 @@ void EntityManager::AddEntity(Entity* entity)
 
 bool EntityManager::Update(float dt)
 {
+    ZoneScoped;
     bool ret = true;
     std::vector<Entity*> entitiesToRemove;
 

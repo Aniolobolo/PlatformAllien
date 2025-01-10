@@ -9,6 +9,7 @@
 #include "Physics.h"
 #include "Map.h"
 #include "EntityManager.h"
+#include "tracy/Tracy.hpp"
 
 Enemy::Enemy() : Entity(EntityType::ENEMY), pathfinding(nullptr), pbody(nullptr) {}
 
@@ -74,6 +75,7 @@ void Enemy::MoveTowardsTargetTile(float dt) {
 }
 
 bool Enemy::Update(float dt) {
+	ZoneScoped;
 	ResetPath();
 	if (!isDying) {
 		while (pathfinding->pathTiles.empty()) {

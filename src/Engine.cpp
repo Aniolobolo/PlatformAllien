@@ -13,6 +13,9 @@
 #include "EntityManager.h"
 #include "Map.h"
 #include "Physics.h"
+#include "GuiManager.h"
+
+#include "tracy/Tracy.hpp"
 
 // Constructor
 Engine::Engine() {
@@ -39,6 +42,7 @@ Engine::Engine() {
     scene = std::make_shared<Scene>();
     map = std::make_shared<Map>();
     entityManager = std::make_shared<EntityManager>();
+    /*guiManager = std::make_shared<GuiManager>();*/
 
     // Ordered for awake / Start / Update
     // Reverse order of CleanUp
@@ -51,6 +55,7 @@ Engine::Engine() {
     AddModule(std::static_pointer_cast<Module>(map));
     AddModule(std::static_pointer_cast<Module>(scene));
     AddModule(std::static_pointer_cast<Module>(entityManager));
+    /*AddModule(std::static_pointer_cast<Module>(guiManager));*/
 
     // Render last 
     AddModule(std::static_pointer_cast<Module>(render));
@@ -125,16 +130,8 @@ bool Engine::Start() {
 // Called each loop iteration
 bool Engine::Update() {
 
-    if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F11) == KEY_DOWN) {
-        debugMode = !debugMode;
-    }
-
-    if (debugMode) {
-        maxFrameDuration = 32;
-    }
-    else {
-        maxFrameDuration = 16;
-    }
+    ZoneScoped;
+    // Code you want to profile
 
     bool ret = true;
     PrepareUpdate();
@@ -152,6 +149,9 @@ bool Engine::Update() {
         ret = PostUpdate();
 
     FinishUpdate();
+
+    FrameMark;
+
     return ret;
 }
 
@@ -180,12 +180,14 @@ bool Engine::CleanUp() {
 // ---------------------------------------------
 void Engine::PrepareUpdate()
 {
+    ZoneScoped;
     frameTime.Start();
 }
 
 // ---------------------------------------------
 void Engine::FinishUpdate()
 {
+    ZoneScoped;
     // L03: TODO 1: Cap the framerate of the gameloop
     double currentDt = frameTime.ReadMs();
     if (maxFrameDuration > 0 && currentDt < maxFrameDuration) {
@@ -221,18 +223,14 @@ void Engine::FinishUpdate()
     // Shows the time measurements in the window title
     // check sprintf formats here https://cplusplus.com/reference/cstdio/printf/
     std::stringstream ss;
-    ss << gameTitle << ": FPS: " << framesPerSecond
-        << " Avg. FPS: " << std::fixed << std::setprecision(2) << averageFps
+    ss << scene.get()->GetTilePosDebug()
+        << gameTitle
+        << ": Av.FPS: " << std::fixed
+        << std::setprecision(2) << averageFps
+        << " Last sec frames: " << framesPerSecond
         << " Last dt: " << std::fixed << std::setprecision(3) << dt
         << " Time since startup: " << secondsSinceStartup
         << " Frame Count: " << frameCount;
-
-    if (configFile.child("vsync").attribute("value").as_bool() == true) {
-        ss << " VSYNC: ON";
-    }
-    else {
-        ss << " VSYNC: OFF";
-    }
 
     std::string titleStr = ss.str();
 
@@ -242,6 +240,7 @@ void Engine::FinishUpdate()
 // Call modules before each loop iteration
 bool Engine::PreUpdate()
 {
+    ZoneScoped;
     //Iterates the module list and calls PreUpdate on each module
     bool result = true;
     for (const auto& module : moduleList) {
@@ -257,6 +256,7 @@ bool Engine::PreUpdate()
 // Call modules on each loop iteration
 bool Engine::DoUpdate()
 {
+    ZoneScoped;
     //Iterates the module list and calls Update on each module
     bool result = true;
     for (const auto& module : moduleList) {
@@ -306,3 +306,5 @@ bool Engine::LoadConfig()
 
     return ret;
 }
+
+

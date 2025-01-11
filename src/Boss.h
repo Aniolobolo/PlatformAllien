@@ -4,6 +4,16 @@
 #include "SDL2/SDL.h"
 #include "Animation.h"
 #include "Pathfinding.h"
+#include <chrono> // Para medir el tiempo
+
+enum class BossState {
+	MOVE_UP,
+	MOVE_DOWN,
+	MOVE_LEFT,
+	MOVE_RIGHT,
+	SHOOT_HORIZONTAL,
+	SHOOT_VERTICAL
+};
 
 struct SDL_Texture;
 
@@ -50,18 +60,25 @@ private:
 	Vector2D lastPlayerTile;
 	std::vector<Vector2D> pathTiles;  // Almacena la ruta de tiles
 	int currentPathIndex = 0;  // Índice actual en la ruta
-	float ENEMY_SPEED = 15.0f;
 	int health = 50;
 	int maxHealth = 50;
+
+	BossState currentState;
+	std::chrono::time_point<std::chrono::high_resolution_clock> stateChangeTime;
+	float movementSpeed = 15.0f; // Velocidad de movimiento del jefe
 
 	bool isShooting = false;
 	bool isalive = true;
 	bool isDying = false;
 	bool flipSprite = false;
 	bool draw = false;
+	bool isPerformingAction = false;
 
 	int deathSfx;
 	int shootFxId;
+
+	float timeSinceLastAction = 0.0f;
+	int currentAction = 0;
 
 	SDL_Texture* texture;
 	const char* texturePath;

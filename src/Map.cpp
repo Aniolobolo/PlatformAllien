@@ -294,7 +294,7 @@ MapLayer* Map::GetNavigationLayer()
 {
     for (const auto& layer : mapData.layers) {
         if (layer->properties.GetProperty("Navigation") != NULL &&
-            layer->properties.GetProperty("Navigation")->value) {
+            layer->properties.GetProperty("Navigation")->value == true) {
             return layer;
         }
     }

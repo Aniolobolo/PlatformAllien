@@ -122,9 +122,9 @@ bool Boss::Update(float dt) {
 			isShooting = true;
 			currentAnimation = &shootD;
 			Vector2D bulletPosition = GetPosition();
-			bulletPosition.setY(bulletPosition.getY() + (GetDirection().getY() + 28));
+			bulletPosition.setY(bulletPosition.getY() + 28);
 			Bullet* bullet = new Bullet(BulletType::BOSSV);
-			bullet->SetDirection(GetDirection());
+			bullet->SetDirection(Vector2D(0, -1));
 			bullet->SetParameters(Engine::GetInstance().scene.get()->configParameters);
 			bullet->texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/enemies/bossBullet.png");
 			Engine::GetInstance().entityManager.get()->AddEntity(bullet);

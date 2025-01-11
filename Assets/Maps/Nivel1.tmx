@@ -9464,7 +9464,7 @@
    <tile gid="18"/>
   </data>
  </layer>
- <layer id="15" name="Navigation" width="130" height="24" visible="0">
+ <layer id="15" name="Navigation" width="130" height="24">
   <properties>
    <property name="Navigation" type="bool" value="true"/>
   </properties>

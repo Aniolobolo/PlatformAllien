@@ -100,7 +100,7 @@ bool Scene::Start()
 
     bgMusic = Engine::GetInstance().audio->PlayMusic("Assets/Audio/Music/level1.ogg", 0);
 
-    int musicVolume = 60;
+    int musicVolume = 50;
     Mix_VolumeMusic(musicVolume);
 
     return true;

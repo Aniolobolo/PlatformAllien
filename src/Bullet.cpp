@@ -90,7 +90,7 @@ bool Bullet::Update(float dt) {
     }
     else if (type == BulletType::BOSSV) {
         velocity.x = 0.0f;  // Sin movimiento horizontal
-        velocity.y = direction.getY() * 9.0f;  // Velocidad constante en la dirección vertical
+        velocity.y = direction.getY() * -9.0f;  // Velocidad constante en la dirección vertical
     }
     pbody->body->SetLinearVelocity(velocity);
 

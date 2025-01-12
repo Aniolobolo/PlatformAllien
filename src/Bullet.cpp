@@ -169,6 +169,7 @@ void Bullet::OnCollisionEnd(PhysBody* physA, PhysBody* physB) {
     case ColliderType::CHECKPOINT:
     case ColliderType::ITEM:
     case ColliderType::ENEMYBULLET:
+    case ColliderType::BULLET:
         LOG("Collided with hazard - DESTROY");
         break;
     }

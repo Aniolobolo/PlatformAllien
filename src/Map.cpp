@@ -92,6 +92,11 @@ bool Map::CleanUp()
 {
     LOG("Unloading map");
 
+    for (PhysBody* colliders : mapData.colliders) {
+        Engine::GetInstance().physics.get()->DeletePhysBody(colliders);
+    }
+    mapData.colliders.clear();
+    
     // L06: TODO 2: Make sure you clean up any memory allocated from tilesets/map
     for (const auto& tileset : mapData.tilesets) {
         delete tileset;
@@ -113,7 +118,7 @@ bool Map::Load(std::string path, std::string fileName)
 {
     bool ret = false;
 
-    // Assigns the name of the map file and the path
+    // Asigna el nombre del archivo del mapa y la ruta
     mapFileName = fileName;
     mapPath = path;
     std::string mapPathName = mapPath + mapFileName;
@@ -126,21 +131,17 @@ bool Map::Load(std::string path, std::string fileName)
         LOG("Could not load map xml file %s. pugi error: %s", mapPathName.c_str(), result.description());
         ret = false;
     }
-    else {
-
-        // L06: TODO 3: Implement LoadMap to load the map properties
-        // retrieve the paremeters of the <map> node and store the into the mapData struct
+    else
+    {
+        // Cargar las propiedades del mapa
         mapData.width = mapFileXML.child("map").attribute("width").as_int();
         mapData.height = mapFileXML.child("map").attribute("height").as_int();
         mapData.tileWidth = mapFileXML.child("map").attribute("tilewidth").as_int();
         mapData.tileHeight = mapFileXML.child("map").attribute("tileheight").as_int();
 
-        // L06: TODO 4: Implement the LoadTileSet function to load the tileset properties
-
-        //Iterate the Tileset
+        // Cargar los tilesets
         for (pugi::xml_node tilesetNode = mapFileXML.child("map").child("tileset"); tilesetNode != NULL; tilesetNode = tilesetNode.next_sibling("tileset"))
         {
-            //Load Tileset attributes
             TileSet* tileSet = new TileSet();
             tileSet->firstGid = tilesetNode.attribute("firstgid").as_int();
             tileSet->name = tilesetNode.attribute("name").as_string();
@@ -151,57 +152,47 @@ bool Map::Load(std::string path, std::string fileName)
             tileSet->tileCount = tilesetNode.attribute("tilecount").as_int();
             tileSet->columns = tilesetNode.attribute("columns").as_int();
 
-            //Load the tileset image
             std::string imgName = tilesetNode.child("image").attribute("source").as_string();
             tileSet->texture = Engine::GetInstance().textures->Load((mapPath + imgName).c_str());
 
             mapData.tilesets.push_back(tileSet);
         }
 
-        // L07: TODO 3: Iterate all layers in the TMX and load each of them
-        for (pugi::xml_node layerNode = mapFileXML.child("map").child("layer"); layerNode != NULL; layerNode = layerNode.next_sibling("layer")) {
-
-            // L07: TODO 4: Implement the load of a single layer 
-            //Load the attributes and saved in a new MapLayer
+        // Cargar las capas del mapa
+        for (pugi::xml_node layerNode = mapFileXML.child("map").child("layer"); layerNode != NULL; layerNode = layerNode.next_sibling("layer"))
+        {
             MapLayer* mapLayer = new MapLayer();
             mapLayer->id = layerNode.attribute("id").as_int();
             mapLayer->name = layerNode.attribute("name").as_string();
             mapLayer->width = layerNode.attribute("width").as_int();
             mapLayer->height = layerNode.attribute("height").as_int();
 
-            //L09: TODO 6 Call Load Layer Properties
             LoadProperties(layerNode, mapLayer->properties);
 
-            //Iterate over all the tiles and assign the values in the data array
-            for (pugi::xml_node tileNode = layerNode.child("data").child("tile"); tileNode != NULL; tileNode = tileNode.next_sibling("tile")) {
-                mapLayer->tiles.push_back(tileNode.attribute("gid").as_int());
+            // Cargar los datos de los tiles
+            for (pugi::xml_node tileNode = layerNode.child("data").child("tile"); tileNode != NULL; tileNode = tileNode.next_sibling("tile"))
+            {
+                int gid = tileNode.attribute("gid").as_int();
+                mapLayer->tiles.push_back(gid);
             }
 
-            //add the layer to the map
             mapData.layers.push_back(mapLayer);
         }
 
-        float x = 0.0f;
-        float y = 0.0f;
-        float width = 0.0f;
-        float height = 0.0f;
-
-        for (pugi::xml_node layerNode = mapFileXML.child("map").child("objectgroup"); layerNode != NULL; layerNode = layerNode.next_sibling("objectgroup")) {
-
-            //Get objet group name(PLATFORM OR SPIKE)
+        // Cargar los objetos del mapa
+        for (pugi::xml_node layerNode = mapFileXML.child("map").child("objectgroup"); layerNode != NULL; layerNode = layerNode.next_sibling("objectgroup"))
+        {
             std::string layerName = layerNode.attribute("name").as_string();
 
-            for (pugi::xml_node tileNode = layerNode.child("object"); tileNode != NULL; tileNode = tileNode.next_sibling("object")) {
+            for (pugi::xml_node tileNode = layerNode.child("object"); tileNode != NULL; tileNode = tileNode.next_sibling("object"))
+            {
+                float x = tileNode.attribute("x").as_float();
+                float y = tileNode.attribute("y").as_float();
+                float width = tileNode.attribute("width").as_float();
+                float height = tileNode.attribute("height").as_float();
 
-                // Asigna los valores correctos desde el XML
-                x = tileNode.attribute("x").as_float();
-                y = tileNode.attribute("y").as_float();
-                width = tileNode.attribute("width").as_float();
-                height = tileNode.attribute("height").as_float();
+                ColliderType colliderType = ColliderType::PLATFORM;
 
-                ColliderType colliderType = ColliderType::PLATFORM; // Valor por defecto
-
-                // If layer name is "spike" then asign type spike
                 if (layerName == "Hazard") {
                     colliderType = ColliderType::HAZARD;
                 }
@@ -210,15 +201,14 @@ bool Map::Load(std::string path, std::string fileName)
                     colliderType = ColliderType::VOID;
                 }
 
-                // Crear el objeto de colisión con el tipo determinado
                 PhysBody* rect = Engine::GetInstance().physics.get()->CreateRectangle(x + width / 2, y + height / 2, width, height, STATIC);
                 rect->ctype = colliderType;
+                mapData.colliders.push_back(rect);
             }
         }
 
         ret = true;
 
-        // L06: TODO 5: LOG all the data loaded iterate all tilesetsand LOG everything
         if (ret == true)
         {
             LOG("Successfully parsed map XML file :%s", fileName.c_str());
@@ -226,8 +216,6 @@ bool Map::Load(std::string path, std::string fileName)
             LOG("tile_width : %d tile_height : %d", mapData.tileWidth, mapData.tileHeight);
 
             LOG("Tilesets----");
-
-            //iterate the tilesets
             for (const auto& tileset : mapData.tilesets) {
                 LOG("name : %s firstgid : %d", tileset->name.c_str(), tileset->firstGid);
                 LOG("tile width : %d tile height : %d", tileset->tileWidth, tileset->tileHeight);
@@ -235,10 +223,10 @@ bool Map::Load(std::string path, std::string fileName)
             }
 
             LOG("Layers----");
-
             for (const auto& layer : mapData.layers) {
                 LOG("id : %d name : %s", layer->id, layer->name.c_str());
                 LOG("Layer width : %d Layer height : %d", layer->width, layer->height);
+                LOG("Tiles in layer: %d", layer->tiles.size());
             }
         }
         else {
@@ -246,12 +234,12 @@ bool Map::Load(std::string path, std::string fileName)
         }
 
         if (mapFileXML) mapFileXML.reset();
-
     }
 
     mapLoaded = ret;
     return ret;
 }
+
 
 // L07: TODO 8: Create a method that translates x,y coordinates from map positions to world positions
 Vector2D Map::MapToWorld(int x, int y) const

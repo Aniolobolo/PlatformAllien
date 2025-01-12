@@ -91,6 +91,7 @@ bool Scene::Start()
 {
     //L06 TODO 3: Call the function to load the map. 
     Engine::GetInstance().map->Load(configParameters.child("map").attribute("path").as_string(), configParameters.child("map").attribute("name").as_string());
+    isLevel1 = true;
     controls = Engine::GetInstance().textures->Load("Assets/Textures/Help.png");
     gameOver = Engine::GetInstance().textures->Load("Assets/Textures/Screens/lossScreen.png");
     pHealth3 = Engine::GetInstance().textures->Load("Assets/Textures/HUD/playerHealth3.png");
@@ -153,8 +154,6 @@ bool Scene::Update(float dt)
         if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_R) == KEY_DOWN) {
             player->hasLost = false;
             player->lives = 3;
-
-            // Restablecer la escena (si es necesario)
         }
     }
 

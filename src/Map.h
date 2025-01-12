@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Module.h"
+#include "Physics.h"
 #include <list>
 #include <vector>
 
@@ -52,6 +53,7 @@ struct MapLayer
     {
         return tiles[(j * width) + i];
     }
+
 };
 
 // L06: TODO 2: Create a struct to hold information for a TileSet
@@ -97,6 +99,7 @@ struct MapData
 
     // L07: TODO 2: Add the info to the MapLayer Struct
     std::list<MapLayer*> layers;
+    std::vector<PhysBody*> colliders;
 };
 
 class Map : public Module
@@ -153,15 +156,15 @@ public:
 
     MapLayer* GetNavigationLayer();
 
-    void ClearCollisions();
-
-
 public:
     std::string mapFileName;
     std::string mapPath;
+
+
 
 private:
     bool mapLoaded;
     // L06: DONE 1: Declare a variable data of the struct MapData
     MapData mapData;
+
 };

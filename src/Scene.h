@@ -82,8 +82,9 @@ private:
 	SDL_Texture* bHealth0;
 
 	bool hasStarted = false;
-	bool hasChosenLevel1 = false;
-	bool hasChosenLevel2 = false;
+	bool isLevel1 = false;
+	bool isLevel2 = false;
+	bool hasChangedLevel = false;
 
 	//L03: TODO 3b: Declare a Player attribute
 	Player* player;

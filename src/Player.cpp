@@ -270,6 +270,15 @@ bool Player::Update(float dt)
 		respawn = false;
 	}
 
+	// Apply power-ups
+	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F1) == KEY_DOWN) {
+		powerUpJumpActive = !powerUpJumpActive;
+	}
+	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F2) == KEY_DOWN) {
+		powerUpSpeedActive = !powerUpSpeedActive;
+	}
+
+	// Godmode
 	if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F10) == KEY_DOWN) {
 		godMode = !godMode;
 	}
@@ -352,11 +361,11 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 		}
 		break;
 	case ColliderType::ENEMYBULLET:
+		Engine::GetInstance().physics.get()->DeletePhysBody(physB);
 		if (!isDead && !godMode) {
 			isDead = true;
 			currentAnimation = &die;
 			Engine::GetInstance().audio.get()->PlayFx(dieFxId);
-			Engine::GetInstance().physics.get()->DeletePhysBody(physB);
 			LOG("Collision HAZARD");
 		}
 		break;

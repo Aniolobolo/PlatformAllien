@@ -46,8 +46,6 @@ bool Map::Update(float dt)
                 for (int i = 0; i < mapData.width; i++) {
                     for (int j = 0; j < mapData.height; j++) {
 
-                        // L07 TODO 9: Complete the draw function
-
                         //Get the gid from tile
                         int gid = mapLayer->Get(i, j);
                         //Check if the gid is different from 0 - some tiles are empty

@@ -118,7 +118,7 @@ bool Scene::Update(float dt)
 {
     UpdatePlayerHUD();
 
-    if (player->position.getX() >= 525 && !player->isDead && player->position.getX() <= 3350) {
+    if (player->position.getX() >= 525 && !player->isDead && player->position.getX() <= 3700) {
         Engine::GetInstance().render.get()->camera.x = 500 - player->position.getX();
     }
 
@@ -137,7 +137,8 @@ bool Scene::Update(float dt)
 
     if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F3) == KEY_DOWN) {
         Engine::GetInstance().render.get()->camera.x = 0;
-        player->SetPosition(Vector2D(200, 490));
+		player->isFalling = false;
+        player->SetPosition(Vector2D(175, 395));
 
     }
 

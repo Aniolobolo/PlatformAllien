@@ -17,7 +17,7 @@
 	<scene>
 		<map path="Assets/Maps/" name="NivelFinal.tmx" />
 		<entities>
-			<player x="190" y="417" w="64" h="64" texture="Assets/Textures/player/PlayerAnimations.png">
+			<player x="1703" y="365" w="64" h="64" texture="Assets/Textures/player/PlayerAnimations.png">
 				<animations>
 					<idle loop="true" speed="0.3">
 						<frame x="0" y="0" w="64" h="64" />
@@ -303,6 +303,38 @@
 					</animations>
 				</checkpoint>
 			</checkpoints>
+			<finish>
+				<flag name="flag" x="3760" y="224" w="208" h="208" texture="Assets/Textures/props/finishline.png" gravity="true">
+					<animations>
+						<idleflag loop="true" speed="0.1">
+							<frame x="0" y="0" w="208" h="208" />
+						</idleflag>
+						<win loop="false" speed="0.2">
+							<frame x="208" y="0" w="208" h="208" />
+							<frame x="416" y="0" w="208" h="208" />
+							<frame x="624" y="0" w="208" h="208" />
+							<frame x="832" y="0" w="208" h="208" />
+							<frame x="1040" y="0" w="208" h="208" />
+							<frame x="1248" y="0" w="208" h="208" />
+							<frame x="1456" y="0" w="208" h="208" />
+							<frame x="1664" y="0" w="208" h="208" />
+							<frame x="1872" y="0" w="208" h="208" />
+							<frame x="2080" y="0" w="208" h="208" />
+							<frame x="2288" y="0" w="208" h="208" />
+							<frame x="2496" y="0" w="208" h="208" />
+							<frame x="2704" y="0" w="208" h="208" />
+							<frame x="2912" y="0" w="208" h="208" />
+							<frame x="3120" y="0" w="208" h="208" />
+							<frame x="3328" y="0" w="208" h="208" />
+							<frame x="3536" y="0" w="208" h="208" />
+							<frame x="3744" y="0" w="208" h="208" />
+						</win>
+						<idlewin loop="true" speed="0.1">
+							<frame x="3744" y="0" w="208" h="208" />
+						</idlewin>
+					</animations>
+				</flag>
+			</finish>
 			<bullets>
 				<bullet name="bullet" x="128" y="160" w="24" h="24" texture="Assets/Textures/player/bullet.png" gravity="false">
 					<animations>

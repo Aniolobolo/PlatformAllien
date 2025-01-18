@@ -387,6 +387,13 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 			isJumping = false;
 		}
 		break;
+	case ColliderType::FLAGPOLE:
+		LOG("Collision FLAGPOLE");
+		if (isFalling) {
+			isFalling = false;
+			isJumping = false;
+		}
+		break;
 	case ColliderType::UNKNOWN:
 		LOG("Collision UNKNOWN");
 		if (isFalling) {

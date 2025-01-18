@@ -7,6 +7,7 @@
 #include "Boss.h"
 #include "Item.h"
 #include "Checkpoint.h"
+#include "Flag.h"
 #include "Bullet.h"
 #include <vector>
 
@@ -82,13 +83,15 @@ private:
 	SDL_Texture* bHealth0;
 
 	bool hasStarted = false;
-	bool isLevel1 = false;
-	bool isLevel2 = false;
+	int currentLevel = 1;
+	int maxLevel = 2;
 	bool hasChangedLevel = false;
+	bool isPlayingMusic = false;
 
 	//L03: TODO 3b: Declare a Player attribute
 	Player* player;
 	Checkpoint* checkP;
+	Flag* flag;
 	Boss* boss;
 	SDL_Texture* mouseTileTex = nullptr;
 	std::string tilePosDebug = "[0,0]";
@@ -98,5 +101,8 @@ private:
 	std::vector<Item*> itemList;
 	std::vector<Bullet*> bulletList;
 	std::vector<Boss*> bossList;
+	std::vector<Checkpoint*> checkPList;
+	std::vector<Flag*> flagList;
 	bool hasReachedCheckpoint = false;
+	bool hasReachedFlagpole = false;
 };

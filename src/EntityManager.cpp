@@ -7,6 +7,7 @@
 #include "Item.h"
 #include "Enemy.h"
 #include "Checkpoint.h"
+#include "Flag.h"
 #include "Bullet.h"
 #include "EnemyFloor.h"
 #include "Boss.h"
@@ -107,6 +108,9 @@ Entity* EntityManager::CreateEntity(EntityType type)
         break;
     case EntityType::CHECKPOINT:
         entity = new Checkpoint();
+        break;
+    case EntityType::FLAGPOLE:
+        entity = new Flag();
         break;
     case EntityType::BULLET:
         entity = new Bullet();

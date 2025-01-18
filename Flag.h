@@ -6,12 +6,12 @@
 
 struct SDL_Texture;
 
-class Checkpoint : public Entity
+class Flag : public Entity
 {
 public:
 
-	Checkpoint();
-	virtual ~Checkpoint();
+	Flag();
+	virtual ~Flag();
 
 	bool Awake();
 
@@ -33,7 +33,7 @@ public:
 public:
 
 	bool isPicked = false;
-	
+
 
 private:
 
@@ -43,8 +43,9 @@ private:
 	Animation beam;
 	pugi::xml_node parameters;
 	int texW, texH;
-	
+
 	int checkpointSFX;
+	int flagpoleSFX;
 	//L08 TODO 4: Add a physics to an item
 	PhysBody* pbody;
 };

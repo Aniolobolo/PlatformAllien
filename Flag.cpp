@@ -1,4 +1,4 @@
-#include "Checkpoint.h"
+#include "Flag.h"
 #include "Engine.h"
 #include "Textures.h"
 #include "Audio.h"
@@ -9,18 +9,18 @@
 #include "Map.h"
 #include "EntityManager.h"
 
-Checkpoint::Checkpoint() : Entity(EntityType::CHECKPOINT)
+Flag::Flag() : Entity(EntityType::CHECKPOINT)
 {
 	name = "checkpoint";
 }
 
-Checkpoint::~Checkpoint() {}
+Flag::~Flag() {}
 
-bool Checkpoint::Awake() {
+bool Flag::Awake() {
 	return true;
 }
 
-bool Checkpoint::Start() {
+bool Flag::Start() {
 
 	//initilize textures
 	texture = Engine::GetInstance().textures.get()->Load(parameters.attribute("texture").as_string());
@@ -50,7 +50,7 @@ bool Checkpoint::Start() {
 	return true;
 }
 
-bool Checkpoint::Update(float dt)
+bool Flag::Update(float dt)
 {
 
 	b2Transform pbodyPos = pbody->body->GetTransform();
@@ -65,12 +65,12 @@ bool Checkpoint::Update(float dt)
 	return true;
 }
 
-bool Checkpoint::CleanUp()
+bool Flag::CleanUp()
 {
 	return true;
 }
 
-void Checkpoint::OnCollision(PhysBody* physA, PhysBody* physB)
+void Flag::OnCollision(PhysBody* physA, PhysBody* physB)
 {
 	switch (physB->ctype)
 	{
@@ -88,7 +88,7 @@ void Checkpoint::OnCollision(PhysBody* physA, PhysBody* physB)
 	}
 }
 
-void Checkpoint::OnCollisionEnd(PhysBody* physA, PhysBody* physB)
+void Flag::OnCollisionEnd(PhysBody* physA, PhysBody* physB)
 {
 	switch (physB->ctype)
 	{

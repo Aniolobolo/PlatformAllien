@@ -36,6 +36,7 @@ enum class ColliderType {
 	ENEMYBULLET,
 	VOID,
 	CHECKPOINT,
+	FLAGPOLE,
 	UNKNOWN
 	// ..
 };

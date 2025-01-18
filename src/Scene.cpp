@@ -61,10 +61,21 @@ bool Scene::Awake()
     }
 
 	// Crear un checkpoint
-    pugi::xml_node checkpoint = configParameters.child("entities").child("checkpoints").child("checkpoint");
-    checkP = (Checkpoint*)Engine::GetInstance().entityManager->CreateEntity(EntityType::CHECKPOINT);
-    checkP->SetParameters(checkpoint);
-    
+    for (pugi::xml_node checkNode = configParameters.child("entities").child("checkpoints").child("checkpoint"); checkNode; checkNode = checkNode.next_sibling("checkpoint"))
+    {
+        Checkpoint* checkpoint = (Checkpoint*)Engine::GetInstance().entityManager->CreateEntity(EntityType::CHECKPOINT);
+        checkpoint->SetParameters(checkNode);
+        checkPList.push_back(checkpoint);
+    }
+
+    // Crear una meta
+    for (pugi::xml_node flagNode = configParameters.child("entities").child("finish").child("flag"); flagNode; flagNode = flagNode.next_sibling("flag"))
+    {
+        Flag* flag = (Flag*)Engine::GetInstance().entityManager->CreateEntity(EntityType::FLAGPOLE);
+        flag->SetParameters(flagNode);
+        flagList.push_back(flag);
+    }
+   
 	// Crear enemigos
     for (pugi::xml_node enemyNode = configParameters.child("entities").child("enemies").child("enemy"); enemyNode; enemyNode = enemyNode.next_sibling("enemy"))
     {
@@ -91,15 +102,13 @@ bool Scene::Start()
 {
     //L06 TODO 3: Call the function to load the map. 
     Engine::GetInstance().map->Load(configParameters.child("map").attribute("path").as_string(), configParameters.child("map").attribute("name").as_string());
-    isLevel1 = true;
+    currentLevel = 1;
     controls = Engine::GetInstance().textures->Load("Assets/Textures/Help.png");
     gameOver = Engine::GetInstance().textures->Load("Assets/Textures/Screens/lossScreen.png");
     pHealth3 = Engine::GetInstance().textures->Load("Assets/Textures/HUD/playerHealth3.png");
     pHealth2 = Engine::GetInstance().textures->Load("Assets/Textures/HUD/playerHealth2.png");
     pHealth1 = Engine::GetInstance().textures->Load("Assets/Textures/HUD/playerHealth1.png");
     pHealth0 = Engine::GetInstance().textures->Load("Assets/Textures/HUD/playerHealth0.png");
-
-    bgMusic = Engine::GetInstance().audio->PlayMusic("Assets/Audio/Music/level1.ogg", 0);
 
     int musicVolume = 50;
     Mix_VolumeMusic(musicVolume);
@@ -158,6 +167,14 @@ bool Scene::Update(float dt)
         }
     }
 
+    if (currentLevel == 1 && !isPlayingMusic) {
+        bgMusic = Engine::GetInstance().audio->PlayMusic("Assets/Audio/Music/level1.ogg", 0);
+		isPlayingMusic = true;
+    }
+	else if (currentLevel == 2 && !isPlayingMusic) {
+		bgMusic = Engine::GetInstance().audio->PlayMusic("Assets/Audio/Music/level2.ogg", 0);
+		isPlayingMusic = true;
+	}
 
 	// Mostrar el menú de controles
     if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_H) == KEY_DOWN) {
@@ -177,9 +194,28 @@ bool Scene::Update(float dt)
 
     	// Comprobar si el jugador ha llegado al checkpoint
     if (!hasReachedCheckpoint) {
-        if (checkP->hasSounded) {
-            SaveState();
-            hasReachedCheckpoint = true;
+        for (Checkpoint* checkpoint : checkPList) {
+            if (checkpoint->hasSounded) {
+                SaveState();
+                hasReachedCheckpoint = true;
+                break; // Salir del bucle una vez que se ha alcanzado un punto de control
+            }
+        }
+    }
+    if (!hasReachedFlagpole) {
+        for (Flag* flag : flagList) {
+            if (flag->hasWon) {
+                hasReachedFlagpole = true;
+                break; // Salir del bucle una vez que se ha alcanzado un punto de control
+            }
+        }
+    }
+
+    if (hasReachedFlagpole) {
+        if (currentLevel == 1) {
+			currentLevel = 2;
+			isPlayingMusic = false;
+			hasReachedFlagpole = false;
         }
     }
 

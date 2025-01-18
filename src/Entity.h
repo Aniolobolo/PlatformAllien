@@ -15,6 +15,7 @@ enum class EntityType
 	POWERUPSPEED,
 	BULLET,
 	CHECKPOINT,
+	FLAGPOLE,
 	UNKNOWN
 };
 

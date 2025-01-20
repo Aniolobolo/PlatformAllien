@@ -35,7 +35,8 @@ bool Item::Start() {
 
     // L08 TODO 4: Add a physics to an item - initialize the physics body
     Engine::GetInstance().textures.get()->GetSize(texture, texW, texH);
-    pbody = Engine::GetInstance().physics.get()->CreateCircle((int)position.getX() + texH / 4, (int)position.getY() + texH / 4, 16, bodyType::STATIC);
+    pbody = Engine::GetInstance().physics.get()->CreateRectangleSensor((int)position.getX() + texH / 7, (int)position.getY() + texH / 4, 16, 16, bodyType::STATIC);
+    pbody->listener = this;
 
     // L08 TODO 7: Assign collider type
     if (itemType == ItemType::COLLECT) {
@@ -54,8 +55,6 @@ bool Item::Start() {
         currentAnimation = &powerupSpeed;
         pbody->ctype = ColliderType::POWERUPSPEED;
     }
-
-    pbody->listener = this;
 
     return true;
 }

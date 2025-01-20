@@ -13,198 +13,283 @@
 Boss::Boss() : Entity(EntityType::BOSS), pathfinding(nullptr), pbody(nullptr) {}
 
 Boss::~Boss() {
-	if (pathfinding != nullptr) {
-		delete pathfinding;
-	}
+    if (pathfinding != nullptr) {
+        delete pathfinding;
+    }
 }
 
 bool Boss::Awake() {
-	return true;
+    return true;
 }
 
-// configurar al enemy
 bool Boss::Start() {
-	texture = Engine::GetInstance().textures.get()->Load(parameters.attribute("texture").as_string());
-	position.setX(parameters.attribute("x").as_int());
-	position.setY(parameters.attribute("y").as_int());
-	texW = parameters.attribute("w").as_int();
-	texH = parameters.attribute("h").as_int();
-	idle.LoadAnimations(parameters.child("animations").child("idle"));
-	move.LoadAnimations(parameters.child("animations").child("move"));
-	shoot.LoadAnimations(parameters.child("animations").child("shoot"));
-	shootD.LoadAnimations(parameters.child("animations").child("shootdown"));
-	die.LoadAnimations(parameters.child("animations").child("die"));
-	currentAnimation = &idle;
-	pbody = Engine::GetInstance().physics.get()->CreateCircle((int)position.getX() + texH / 4, (int)position.getY() + texH / 4, texH / 4, bodyType::DYNAMIC);
-	if (pbody == nullptr) {
-		LOG("Error al crear el cuerpo físico del enemigo");
-		return false;
-	}
-	pbody->ctype = ColliderType::ENEMY;
-	pbody->listener = this;
-	if (!parameters.attribute("gravity").as_bool()) pbody->body->SetGravityScale(0);
+    texture = Engine::GetInstance().textures.get()->Load(parameters.attribute("texture").as_string());
+    position.setX(parameters.attribute("x").as_int());
+    position.setY(parameters.attribute("y").as_int());
+    texW = parameters.attribute("w").as_int();
+    texH = parameters.attribute("h").as_int();
+    idle.LoadAnimations(parameters.child("animations").child("idle"));
+    move.LoadAnimations(parameters.child("animations").child("move"));
+    shoot.LoadAnimations(parameters.child("animations").child("shoot"));
+    shootD.LoadAnimations(parameters.child("animations").child("shootdown"));
+    die.LoadAnimations(parameters.child("animations").child("die"));
+    currentAnimation = &idle;
 
-	shootFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/shoot.wav");
-	deathSfx = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/enemy_death.wav");
+    pbody = Engine::GetInstance().physics.get()->CreateCircle((int)position.getX() + texH / 4, (int)position.getY() + texH / 4, texH / 4, bodyType::DYNAMIC);
+    if (pbody == nullptr) {
+        LOG("Error al crear el cuerpo físico del enemigo");
+        return false;
+    }
+    pbody->ctype = ColliderType::ENEMY;
+    pbody->listener = this;
+    if (!parameters.attribute("gravity").as_bool()) pbody->body->SetGravityScale(0);
 
-	pbody->body->SetLinearVelocity(b2Vec2(0, 0));
-	pathfinding = new Pathfinding();
-	ResetPath();
-	isalive = true;
-	isDying = false;
-	return true;
+    shootFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/shoot.wav");
+    deathSfx = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/enemy_death.wav");
+
+    pathfinding = new Pathfinding();
+    ResetPath();
+
+    pbody->body->SetLinearVelocity(b2Vec2(0, 0));
+    bossTimer.Start();
+    return true;
 }
 
 void Boss::MoveTowardsTargetTile(float dt) {
-	if (pathfinding == nullptr || pathfinding->pathTiles.size() < 2) return;
+    if (pathfinding == nullptr || pathfinding->pathTiles.size() < 2) return;
 
-	//si el player está a más de 20 tiles de distancia, el enemigo se queda quieto
-	if (pathfinding->pathTiles.size() > 20) {
-		pbody->body->SetLinearVelocity(b2Vec2(0, 0));
-		return;
-	}
+    //si el player está a más de 20 tiles de distancia, el enemigo se queda quieto
+    if (pathfinding->pathTiles.size() > 35) {
+        pbody->body->SetLinearVelocity(b2Vec2(0, 0));
+        return;
+    }
+    else {
+        if (health <= 25 && health >= 0) {
+            movementSpeed = angrySpeed;
 
-	//coger el penúltimo tile de la lista de tiles para moverse hacia él
-	auto it = pathfinding->pathTiles.end();
-	Vector2D targetTile = *(--(--it));
-	Vector2D targetWorldPos = Engine::GetInstance().map.get()->MapToWorld(targetTile.getX(), targetTile.getY());
-	Vector2D enemyPos = GetPosition();
-	Vector2D direction = targetWorldPos + Vector2D(16, 16) - enemyPos;
-	float distance = direction.Length();
-	Vector2D velocity(0, 0);
-	if (distance > 0.5f) {
-		direction.Normalize();
-		velocity = direction * 100.0f;
-	}
-	b2Vec2 velocityVec = b2Vec2(PIXEL_TO_METERS(velocity.getX()), PIXEL_TO_METERS(velocity.getY()));
-	pbody->body->SetLinearVelocity(velocityVec);
+            timeSinceLastAction = bossAngryTimer.ReadSec();
+
+            if (timeSinceLastAction >= 0 && timeSinceLastAction < 2) { // Muevete a (8630, 200)
+                currentAnimation = &move;
+                Vector2D direction = Vector2D(8630, 200) - GetPosition();
+                direction.Normalize();
+                b2Vec2 velocity = b2Vec2(PIXEL_TO_METERS(direction.getX() * movementSpeed), PIXEL_TO_METERS(direction.getY() * movementSpeed));
+                pbody->body->SetLinearVelocity(velocity);
+            }
+            else if (timeSinceLastAction >= 2 && timeSinceLastAction < 3) { // Quedate quieto
+                currentAnimation = &idle;
+                pbody->body->SetLinearVelocity(b2Vec2(0, 0));
+            }
+            else if (timeSinceLastAction >= 3 && timeSinceLastAction < 6) { // Muevete a (9300, 200) disparando
+                currentAnimation = &shootD;
+                Vector2D direction = Vector2D(9350, 200) - GetPosition();
+                direction.Normalize();
+                b2Vec2 velocity = b2Vec2(PIXEL_TO_METERS(direction.getX() * movementSpeed), PIXEL_TO_METERS(direction.getY() * movementSpeed));
+                pbody->body->SetLinearVelocity(velocity);
+                Shoot();
+            }
+            else if (timeSinceLastAction >= 6 && timeSinceLastAction < 9) { // Muevete a (8630, 200) disparando
+                currentAnimation = &shootD;
+                Vector2D direction = Vector2D(8630, 200) - GetPosition();
+                direction.Normalize();
+                b2Vec2 velocity = b2Vec2(PIXEL_TO_METERS(direction.getX() * movementSpeed), PIXEL_TO_METERS(direction.getY() * movementSpeed));
+                pbody->body->SetLinearVelocity(velocity);
+                Shoot();
+            }
+            else if (timeSinceLastAction >= 9 && timeSinceLastAction < 12) { // Muevete a (9300, 200) disparando
+                currentAnimation = &shootD;
+                Vector2D direction = Vector2D(9350, 200) - GetPosition();
+                direction.Normalize();
+                b2Vec2 velocity = b2Vec2(PIXEL_TO_METERS(direction.getX() * movementSpeed), PIXEL_TO_METERS(direction.getY() * movementSpeed));
+                pbody->body->SetLinearVelocity(velocity);
+                Shoot();
+            }
+            else if (timeSinceLastAction >= 12 && timeSinceLastAction < 13) { // Quedate quieto
+                currentAnimation = &idle;
+                pbody->body->SetLinearVelocity(b2Vec2(0, 0));
+            }
+            else if (timeSinceLastAction >= 13 && timeSinceLastAction < 15) { // Muevete hasta (8980, 525)
+                currentAnimation = &move;
+                Vector2D direction = Vector2D(8980, 525) - GetPosition();
+                direction.Normalize();
+                b2Vec2 velocity = b2Vec2(PIXEL_TO_METERS(direction.getX() * movementSpeed), PIXEL_TO_METERS(direction.getY() * movementSpeed));
+                pbody->body->SetLinearVelocity(velocity);
+            }
+            else if (timeSinceLastAction >= 15 && timeSinceLastAction < 18) { // Quedate quieto
+                currentAnimation = &idle;
+                pbody->body->SetLinearVelocity(b2Vec2(0, 0));
+            }
+            else if (timeSinceLastAction >= 18) { // Reinicia el ciclo
+                bossAngryTimer.Start();
+            }
+
+        }
+        else { // Comportamiento normal cuando salud > 25
+            movementSpeed = normalSpeed;
+            timeSinceLastAction = bossTimer.ReadSec();
+
+            // Ajusta los intervalos para ralentizar el ciclo
+            if (timeSinceLastAction >= 0 && timeSinceLastAction < 2) { // Intervalo extendido
+                currentAnimation = &idle;
+                pbody->body->SetLinearVelocity(b2Vec2(0, 0));
+            }
+            else if (timeSinceLastAction >= 2 && timeSinceLastAction < 5) { // Movimiento 1
+                currentAnimation = &move;
+                Vector2D direction = Vector2D(9350, 200) - GetPosition();
+                direction.Normalize();
+                b2Vec2 velocity = b2Vec2(PIXEL_TO_METERS(direction.getX() * movementSpeed), PIXEL_TO_METERS(direction.getY() * movementSpeed));
+                pbody->body->SetLinearVelocity(velocity);
+            }
+            else if (timeSinceLastAction >= 5 && timeSinceLastAction < 6) { // Intervalo extendido
+                currentAnimation = &idle;
+                pbody->body->SetLinearVelocity(b2Vec2(0, 0));
+            }
+            else if (timeSinceLastAction >= 6 && timeSinceLastAction < 9) { // Movimiento 2 + disparo continuo
+                Vector2D direction = Vector2D(8630, 200) - GetPosition();
+                direction.Normalize();
+                b2Vec2 velocity = b2Vec2(PIXEL_TO_METERS(direction.getX() * movementSpeed), PIXEL_TO_METERS(direction.getY() * movementSpeed));
+                pbody->body->SetLinearVelocity(velocity);
+
+                Shoot();
+            }
+
+            else if (timeSinceLastAction >= 9 && timeSinceLastAction < 10) { // Pausa antes del siguiente movimiento
+                isShooting = false;
+                currentAnimation = &idle;
+                pbody->body->SetLinearVelocity(b2Vec2(0, 0));
+            }
+
+            else if (timeSinceLastAction >= 10 && timeSinceLastAction < 13) {
+                Vector2D direction = Vector2D(9350, 200) - GetPosition();
+                direction.Normalize();
+                b2Vec2 velocity = b2Vec2(PIXEL_TO_METERS(direction.getX() * movementSpeed), PIXEL_TO_METERS(direction.getY() * movementSpeed));
+                pbody->body->SetLinearVelocity(velocity);
+
+                Shoot();
+            }
+            else if (timeSinceLastAction >= 13 && timeSinceLastAction < 14) {
+                isShooting = false;
+                currentAnimation = &idle;
+                pbody->body->SetLinearVelocity(b2Vec2(0, 0));
+            }
+            else if (timeSinceLastAction >= 14 && timeSinceLastAction < 17) { // Movimiento 3
+                isShooting = false;
+                currentAnimation = &move;
+                Vector2D direction = Vector2D(8980, 525) - GetPosition();
+                direction.Normalize();
+                b2Vec2 velocity = b2Vec2(PIXEL_TO_METERS(direction.getX() * movementSpeed), PIXEL_TO_METERS(direction.getY() * movementSpeed));
+                pbody->body->SetLinearVelocity(velocity);
+            }
+            else if (timeSinceLastAction >= 17) { // Reinicia el ciclo
+                bossTimer.Start();
+            }
+        }
+    }
+    
+
+    
 }
 
 bool Boss::Update(float dt) {
-	ResetPath();
-	if (!isDying) {
-		while (pathfinding->pathTiles.empty()) {
-			pathfinding->PropagateAStar(SQUARED);
-		}
-		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F9) == KEY_DOWN) {
-			draw = !draw;
-		}
-		if (draw) {
-			pathfinding->DrawPath();
-		}
-		MoveTowardsTargetTile(dt);
-		float velocityX = pbody->body->GetLinearVelocity().x;
-		if (velocityX < -0.1f) {
-			flipSprite = true;
-			hflip = SDL_FLIP_HORIZONTAL;
-		}
-		else if (velocityX > 0.1f) {
-			flipSprite = false;
-			hflip = SDL_FLIP_NONE;
-		}
+    ResetPath();
+    if (!isDying) {
 
-		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_I) == KEY_REPEAT && !isShooting && currentAnimation == &idle) {
-			isShooting = true;
-			currentAnimation = &shoot;
-			Vector2D bulletPosition = GetPosition();
-			bulletPosition.setX(bulletPosition.getX() + (GetDirection().getX() * 28));
-			Bullet* bullet = new Bullet(BulletType::BOSSH);
-			bullet->SetDirection(GetDirection());
-			bullet->SetParameters(Engine::GetInstance().scene.get()->configParameters);
-			bullet->texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/enemies/bossBullet.png");
-			Engine::GetInstance().entityManager.get()->AddEntity(bullet);
-			bullet->Start();
-			bullet->SetPosition(bulletPosition);
-			Engine::GetInstance().audio.get()->PlayFx(shootFxId);
-		}
+        while (pathfinding->pathTiles.empty()) {
+            pathfinding->PropagateAStar(SQUARED);
+        }
+        if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F9) == KEY_DOWN) {
+            draw = !draw;
+        }
+        if (draw) {
+            pathfinding->DrawPath();
+        }
+        MoveTowardsTargetTile(dt);
 
-		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_O) == KEY_REPEAT && !isShooting && currentAnimation == &idle) {
-			isShooting = true;
-			currentAnimation = &shootD;
-			Vector2D bulletPosition = GetPosition();
-			bulletPosition.setY(bulletPosition.getY() + 28);
-			Bullet* bullet = new Bullet(BulletType::BOSSV);
-			bullet->SetDirection(Vector2D(0, -1));
-			bullet->SetParameters(Engine::GetInstance().scene.get()->configParameters);
-			bullet->texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/enemies/bossBullet.png");
-			Engine::GetInstance().entityManager.get()->AddEntity(bullet);
-			bullet->Start();
-			bullet->SetPosition(bulletPosition);
-			Engine::GetInstance().audio.get()->PlayFx(shootFxId);
-		}
+        // Actualiza flipSprite solo cuando cambie significativamente la dirección
+        float velocityX = pbody->body->GetLinearVelocity().x;
+        if (velocityX < -0.1f && !flipSprite) {
+            flipSprite = true;
+            hflip = SDL_FLIP_HORIZONTAL;
+        }
+        else if (velocityX > 0.1f && flipSprite) {
+            flipSprite = false;
+            hflip = SDL_FLIP_NONE;
+        }
+    }
 
-		if (isShooting && currentAnimation->HasFinished()) {
-			isShooting = false;
-			shoot.Reset();
-			shootD.Reset();
-			currentAnimation = &idle;
-		}
+    if (currentAnimation == &shootD && currentAnimation->HasFinished()) {
+        isShooting = false;
+        shootD.Reset();
+    }
 
-	}
+    if (isDying) {
+        b2Vec2 currentVelocity = pbody->body->GetLinearVelocity();
+        pbody->body->SetLinearVelocity(b2Vec2(0, currentVelocity.y));
+    }
 
-	if (isDying) {
-		b2Vec2 currentVelocity = pbody->body->GetLinearVelocity();
-		pbody->body->SetLinearVelocity(b2Vec2(0, currentVelocity.y));
-	}
+    // Actualiza posición y renderiza
+    b2Transform pbodyPos = pbody->body->GetTransform();
+    position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texH / 2);
+    position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH / 2);
+    Engine::GetInstance().render.get()->DrawTexture(texture, (int)position.getX(), (int)position.getY(), &currentAnimation->GetCurrentFrame(), hflip);
+    currentAnimation->Update();
 
-	b2Transform pbodyPos = pbody->body->GetTransform();
-	position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texH / 2);
-	position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH / 2);
-	Engine::GetInstance().render.get()->DrawTexture(texture, (int)position.getX(), (int)position.getY(), &currentAnimation->GetCurrentFrame(), hflip);
-	currentAnimation->Update();
-	return true;
+    return true;
 }
 
 bool Boss::CleanUp() {
-	if (pbody != nullptr) {
-		Engine::GetInstance().physics.get()->DeletePhysBody(pbody);
-	}
-	return true;
-}
-
-void Boss::CreateEnemyAtPosition(Vector2D position) {
-	Boss* newEnemy = new Boss();
-	newEnemy->SetPosition(position);
-	Engine::GetInstance().entityManager.get()->AddEntity(newEnemy);
+    if (pbody != nullptr) {
+        Engine::GetInstance().physics.get()->DeletePhysBody(pbody);
+    }
+    return true;
 }
 
 void Boss::SetPosition(Vector2D pos) {
-	pos.setX(pos.getX() + texW / 4);
-	pos.setY(pos.getY() + texH / 4);
-	b2Vec2 bodyPos = b2Vec2(PIXEL_TO_METERS(pos.getX()), PIXEL_TO_METERS(pos.getY()));
-	if (pbody != nullptr) {
-		pbody->body->SetTransform(bodyPos, 0);
-	}
+    pos.setX(pos.getX() + texW / 4);
+    pos.setY(pos.getY() + texH / 4);
+    b2Vec2 bodyPos = b2Vec2(PIXEL_TO_METERS(pos.getX()), PIXEL_TO_METERS(pos.getY()));
+    if (pbody != nullptr) {
+        pbody->body->SetTransform(bodyPos, 0);
+    }
 }
 
 Vector2D Boss::GetPosition() {
-	if (!isalive) {
-		return Vector2D(0, 0);
-	}
-	if (pbody != nullptr) {
-		b2Vec2 bodyPos = pbody->body->GetTransform().p;
-		Vector2D pos = Vector2D(METERS_TO_PIXELS(bodyPos.x), METERS_TO_PIXELS(bodyPos.y));
-		return pos;
-	}
-	return Vector2D(0, 0);
+    if (!isalive) {
+        return Vector2D(0, 0);
+    }
+    if (pbody != nullptr) {
+        b2Vec2 bodyPos = pbody->body->GetTransform().p;
+        Vector2D pos = Vector2D(METERS_TO_PIXELS(bodyPos.x), METERS_TO_PIXELS(bodyPos.y));
+        return pos;
+    }
+    return Vector2D(0, 0);
 }
 
-Vector2D Boss::GetDirection() const {
-
-	if (flipSprite) {
-		return Vector2D(-1, 0);  // Izquierda
-	}
-	else {
-		return Vector2D(1, 0);   // Derecha
-	}
+void Boss::Shoot()
+{
+    // Temporizador para disparos
+    if (!isShooting) { // Dispara cada 500 ms
+        currentAnimation = &shootD;
+        Vector2D bulletPosition = GetPosition();
+        bulletPosition.setY(bulletPosition.getY() + 28);
+        Bullet* bullet = new Bullet(BulletType::BOSSV);
+        bullet->SetDirection(Vector2D(0, -1));
+        bullet->SetParameters(Engine::GetInstance().scene.get()->configParameters);
+        bullet->texture = Engine::GetInstance().textures.get()->Load("Assets/Textures/enemies/bossBullet.png");
+        Engine::GetInstance().entityManager.get()->AddEntity(bullet);
+        bullet->Start();
+        bullet->SetPosition(bulletPosition);
+        Engine::GetInstance().audio.get()->PlayFx(shootFxId);
+        isShooting = true;
+    }
 }
 
 void Boss::ResetPath() {
-	Vector2D pos = GetPosition();
-	Vector2D tilePos = Engine::GetInstance().map.get()->WorldToMap(pos.getX(), pos.getY());
-	if (pathfinding != nullptr) {
-		pathfinding->ResetPath(tilePos);
-	}
+    Vector2D pos = GetPosition();
+    Vector2D tilePos = Engine::GetInstance().map.get()->WorldToMap(pos.getX(), pos.getY());
+    if (pathfinding != nullptr) {
+        pathfinding->ResetPath(tilePos);
+    }
 }
 
 void Boss::OnCollision(PhysBody* physA, PhysBody* physB) {

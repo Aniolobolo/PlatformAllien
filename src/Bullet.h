@@ -4,6 +4,7 @@
 #include "SDL2/SDL.h"
 #include "Animation.h"
 #include "Pathfinding.h"
+#include "Player.h"
 
 struct SDL_Texture;
 
@@ -45,6 +46,9 @@ public:
     SDL_Texture* texture;
 
 private:
+
+    int dieFxId;
+
     bool flipSprite = false;
     const char* texturePath;
     pugi::xml_node parameters;
@@ -54,4 +58,5 @@ private:
     Animation travel;
     PhysBody* pbody;
     BulletType type;
+
 };

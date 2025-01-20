@@ -323,6 +323,7 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 	case ColliderType::ITEM:
 		LOG("Collision ITEM");
 		Engine::GetInstance().audio.get()->PlayFx(pickCoinFxId);
+
 		break;
 	case ColliderType::POWERUPJUMP:
 		LOG("Collision ITEM");

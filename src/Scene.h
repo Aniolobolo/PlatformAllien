@@ -45,6 +45,9 @@ public:
 	// Draw player health hud
 	void UpdatePlayerHUD();
 
+	// Draw boss health hud
+	void UpdateBossHUD();
+
 	// Return the player position
 	Vector2D GetPlayerPosition();
 
@@ -85,8 +88,11 @@ private:
 	bool hasStarted = false;
 	int currentLevel = 1;
 	int maxLevel = 2;
+	bool arrivedToBoss = false;
 	bool hasChangedLevel = false;
 	bool isPlayingMusic = false;
+
+	int currentCheckpoint = 0;
 
 	//L03: TODO 3b: Declare a Player attribute
 	Player* player;

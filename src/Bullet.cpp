@@ -149,14 +149,12 @@ void Bullet::OnCollision(PhysBody* physA, PhysBody* physB) {
         if (type == BulletType::HORIZONTAL || type == BulletType::VERTICAL) {
             isAlive = false;
             Engine::GetInstance().entityManager.get()->DestroyEntity(this);
-            Engine::GetInstance().physics.get()->DeletePhysBody(physB);
         }
         break;
     case ColliderType::BULLET:
         if (type == BulletType::BOSSH || type == BulletType::BOSSV) {
             isAlive = false;
             Engine::GetInstance().entityManager.get()->DestroyEntity(this);
-            Engine::GetInstance().physics.get()->DeletePhysBody(physB);
         }
         break;
     }

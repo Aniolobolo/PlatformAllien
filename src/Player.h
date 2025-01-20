@@ -99,5 +99,4 @@ public:
 	Animation moveShootUp;
 	Animation die;
 
-	std::vector<Bullet*> bulletList;
 };

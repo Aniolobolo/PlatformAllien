@@ -46,6 +46,8 @@ private:
 
 	ItemType itemType;
 
+	int pickCoinFxId;
+
 	Animation* currentAnimation = nullptr;
 	Animation coin;
 	Animation health;

@@ -102,8 +102,9 @@ bool Scene::Start()
 {
     //L06 TODO 3: Call the function to load the map. 
     Engine::GetInstance().map->Load(configParameters.child("map").attribute("path").as_string(), configParameters.child("map").attribute("name").as_string());
-    currentLevel = 2;
     controls = Engine::GetInstance().textures->Load("Assets/Textures/Help.png");
+
+	wall = Engine::GetInstance().textures->Load("Assets/Textures/wall.png");
     gameOver = Engine::GetInstance().textures->Load("Assets/Textures/Screens/lossScreen.png");
     pHealth3 = Engine::GetInstance().textures->Load("Assets/Textures/HUD/playerHealth3.png");
     pHealth2 = Engine::GetInstance().textures->Load("Assets/Textures/HUD/playerHealth2.png");
@@ -135,18 +136,27 @@ bool Scene::Update(float dt)
     UpdatePlayerHUD();
 
     // Comprobar si el jugador está en la zona del jefe
-    if (player->position.getX() >= 8435) {
+    if (player->position.getX() <= 4500) {
+        if (currentLevel != 1) {
+            currentLevel = 1;
+            isPlayingMusic = false; // Reiniciar la bandera de música
+        }
+    }
+    else if (player->position.getX() >= 4500 && player->position.getX() <= 8435) {
+        if (currentLevel != 2) {
+            currentLevel = 2;
+            isPlayingMusic = false; // Reiniciar la bandera de música
+        }
+    }
+    else if (player->position.getX() >= 8435) {
         UpdateBossHUD();
         if (currentLevel != 3) {
             currentLevel = 3;
             isPlayingMusic = false; // Reiniciar la bandera de música
         }
-    }
-    else {
-        if (currentLevel == 3) {
-            currentLevel = 2;
-            isPlayingMusic = false; // Reiniciar la bandera de música
-        }
+		if (hasDeletedEnemies == false) {
+			DeleteEnemies();
+		}
     }
 
     // Control de la música según el nivel actual
@@ -163,6 +173,7 @@ bool Scene::Update(float dt)
         isPlayingMusic = true;
     }
 
+
     if (currentLevel == 1) {
         if (player->position.getX() >= 525 && !player->isDead && player->position.getX() <= 3700) {
             Engine::GetInstance().render.get()->camera.x = 500 - player->position.getX();
@@ -174,7 +185,7 @@ bool Scene::Update(float dt)
 		}
 	}
     
-    if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F4) == KEY_DOWN) {
+    if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F7) == KEY_DOWN) {
 		currentCheckpoint += 1;
 		if (currentCheckpoint > 3) {
 			currentCheckpoint = 1;
@@ -202,14 +213,16 @@ bool Scene::Update(float dt)
         }
     }
 
-    
-
     if (cameraNeedsUpdate || player->hasToUpdateCam) {
         player->hasToUpdateCam = false;
         cameraNeedsUpdate = false;
-        if (player->reachedCheckpoint) {
+        if (player->reachedCheckpoint && currentLevel == 1) {
             Engine::GetInstance().render.get()->camera.x = 2460;
-        }
+		}
+		else if (player->reachedCheckpoint && (currentLevel == 2 || currentLevel == 3)) {
+			Engine::GetInstance().render.get()->camera.x = 7970;
+		}
+
         else {
             Engine::GetInstance().render.get()->camera.x = 0;
         }
@@ -218,10 +231,19 @@ bool Scene::Update(float dt)
     }
 
     if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F3) == KEY_DOWN) {
-        Engine::GetInstance().render.get()->camera.x = 0;
-		player->isFalling = false;
-        player->SetPosition(Vector2D(175, 395));
 
+        if (currentLevel = 1) {
+            Engine::GetInstance().render.get()->camera.x = 0;
+            player->isFalling = false;
+            player->SetPosition(Vector2D(175, 395));
+			isPlayingMusic = false;
+		}
+        else if (currentLevel = 2 || currentLevel == 3) {
+            Engine::GetInstance().render.get()->camera.x = 4500;
+            player->isFalling = false;
+            player->SetPosition(Vector2D(5080, 350));
+			isPlayingMusic = false;
+        }
     }
 
     if (player->hasLost) {
@@ -272,7 +294,9 @@ bool Scene::Update(float dt)
             if (flag->hasWon) {
                 Engine::GetInstance().render.get()->camera.x = 4500;
                 player->SetPosition(Vector2D(5025, 300));
+                SaveState();
                 hasReachedFlagpole = true;
+				hasReachedCheckpoint = false;
                 break; // Salir del bucle una vez que se ha alcanzado un punto de control
             }
         }
@@ -303,6 +327,29 @@ bool Scene::PostUpdate()
         SaveState();
 
     return ret;
+}
+
+void Scene::DeleteEnemies()
+{
+    if (!enemyList.empty()) {
+        for (auto it = enemyList.begin(); it != enemyList.end(); ++it) {
+            if (*it != nullptr) {
+                (*it)->CleanUp();
+                delete* it; // Asegúrate de liberar la memoria
+            }
+        }
+        enemyList.clear();
+    }
+    if (!enemyFList.empty()) {
+        for (auto it = enemyFList.begin(); it != enemyFList.end(); ++it) {
+            if (*it != nullptr) {
+                (*it)->CleanUp();
+                delete* it; // Asegúrate de liberar la memoria
+            }
+        }
+        enemyFList.clear();
+    }
+    hasDeletedEnemies = true;
 }
 
 // Called before quitting

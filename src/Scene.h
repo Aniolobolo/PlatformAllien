@@ -48,6 +48,11 @@ public:
 	// Draw boss health hud
 	void UpdateBossHUD();
 
+	void CreateEnemies();
+
+	void DeleteEnemies();
+
+
 	// Return the player position
 	Vector2D GetPlayerPosition();
 
@@ -65,6 +70,8 @@ public:
 	}
 	pugi::xml_node bulletNode;
 
+	Player* player;
+
 private:
 	SDL_Texture* img;
 	bool areControlsVisible = false;
@@ -73,6 +80,10 @@ private:
 	int bgMusic;
 
 	bool cameraNeedsUpdate = false;
+
+	bool hasPlacedWall = false;
+
+	SDL_Texture* wall;;
 
 	SDL_Texture* pHealth3;
 	SDL_Texture* pHealth2;
@@ -94,8 +105,11 @@ private:
 
 	int currentCheckpoint = 0;
 
+	bool hasCreatedEnemies = false;
+	bool hasDeletedEnemies = false;
+
 	//L03: TODO 3b: Declare a Player attribute
-	Player* player;
+	
 	Checkpoint* checkP;
 	Flag* flag;
 	Boss* boss;

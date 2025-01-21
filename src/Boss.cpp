@@ -13,9 +13,7 @@
 Boss::Boss() : Entity(EntityType::BOSS), pathfinding(nullptr), pbody(nullptr) {}
 
 Boss::~Boss() {
-    if (pathfinding != nullptr) {
-        delete pathfinding;
-    }
+    delete pathfinding;
 }
 
 bool Boss::Awake() {
@@ -23,29 +21,31 @@ bool Boss::Awake() {
 }
 
 bool Boss::Start() {
-    texture = Engine::GetInstance().textures.get()->Load(parameters.attribute("texture").as_string());
+    texture = Engine::GetInstance().textures->Load(parameters.attribute("texture").as_string());
     position.setX(parameters.attribute("x").as_int());
     position.setY(parameters.attribute("y").as_int());
     texW = parameters.attribute("w").as_int();
     texH = parameters.attribute("h").as_int();
+
     idle.LoadAnimations(parameters.child("animations").child("idle"));
     move.LoadAnimations(parameters.child("animations").child("move"));
-    shoot.LoadAnimations(parameters.child("animations").child("shoot"));
     shootD.LoadAnimations(parameters.child("animations").child("shootdown"));
     die.LoadAnimations(parameters.child("animations").child("die"));
     currentAnimation = &idle;
 
-    pbody = Engine::GetInstance().physics.get()->CreateCircle((int)position.getX() + texH / 4, (int)position.getY() + texH / 4, texH / 4, bodyType::DYNAMIC);
-    if (pbody == nullptr) {
+    pbody = Engine::GetInstance().physics->CreateCircle(position.getX() + texH / 4, position.getY() + texH / 4, texH / 4, bodyType::DYNAMIC);
+    if (!pbody) {
         LOG("Error al crear el cuerpo físico del enemigo");
         return false;
     }
     pbody->ctype = ColliderType::ENEMY;
     pbody->listener = this;
-    if (!parameters.attribute("gravity").as_bool()) pbody->body->SetGravityScale(0);
+    if (!parameters.attribute("gravity").as_bool()) {
+        pbody->body->SetGravityScale(0);
+    }
 
-    shootFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/shoot.wav");
-    deathSfx = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/enemy_death.wav");
+    shootFxId = Engine::GetInstance().audio->LoadFx("Assets/Audio/Fx/shoot.wav");
+    deathSfx = Engine::GetInstance().audio->LoadFx("Assets/Audio/Fx/enemy_death.wav");
 
     pathfinding = new Pathfinding();
     ResetPath();
@@ -56,170 +56,148 @@ bool Boss::Start() {
 }
 
 void Boss::MoveTowardsTargetTile(float dt) {
-    if (pathfinding == nullptr || pathfinding->pathTiles.size() < 2) return;
-
-    //si el player está a más de 20 tiles de distancia, el enemigo se queda quieto
-    if (pathfinding->pathTiles.size() > 35) {
-        pbody->body->SetLinearVelocity(b2Vec2(0, 0));
+    if (!pathfinding || pathfinding->pathTiles.size() < 2) {
         return;
     }
-    else {
-        if (health <= 25 && health >= 0) {
-            movementSpeed = angrySpeed;
 
-            timeSinceLastAction = bossAngryTimer.ReadSec();
+    // Si el jugador está a más de 20 tiles de distancia, el jefe se queda quieto
+    if (pathfinding->pathTiles.size() > 35) {
+        StayIdle(dt);
+        return;
+    }
 
-            if (timeSinceLastAction >= 0 && timeSinceLastAction < 2) { // Muevete a (8630, 200)
-                currentAnimation = &move;
-                Vector2D direction = Vector2D(8630, 200) - GetPosition();
-                direction.Normalize();
-                b2Vec2 velocity = b2Vec2(PIXEL_TO_METERS(direction.getX() * movementSpeed), PIXEL_TO_METERS(direction.getY() * movementSpeed));
-                pbody->body->SetLinearVelocity(velocity);
-            }
-            else if (timeSinceLastAction >= 2 && timeSinceLastAction < 3) { // Quedate quieto
-                currentAnimation = &idle;
-                pbody->body->SetLinearVelocity(b2Vec2(0, 0));
-            }
-            else if (timeSinceLastAction >= 3 && timeSinceLastAction < 6) { // Muevete a (9300, 200) disparando
-                currentAnimation = &shootD;
-                Vector2D direction = Vector2D(9350, 200) - GetPosition();
-                direction.Normalize();
-                b2Vec2 velocity = b2Vec2(PIXEL_TO_METERS(direction.getX() * movementSpeed), PIXEL_TO_METERS(direction.getY() * movementSpeed));
-                pbody->body->SetLinearVelocity(velocity);
-                Shoot();
-            }
-            else if (timeSinceLastAction >= 6 && timeSinceLastAction < 9) { // Muevete a (8630, 200) disparando
-                currentAnimation = &shootD;
-                Vector2D direction = Vector2D(8630, 200) - GetPosition();
-                direction.Normalize();
-                b2Vec2 velocity = b2Vec2(PIXEL_TO_METERS(direction.getX() * movementSpeed), PIXEL_TO_METERS(direction.getY() * movementSpeed));
-                pbody->body->SetLinearVelocity(velocity);
-                Shoot();
-            }
-            else if (timeSinceLastAction >= 9 && timeSinceLastAction < 12) { // Muevete a (9300, 200) disparando
-                currentAnimation = &shootD;
-                Vector2D direction = Vector2D(9350, 200) - GetPosition();
-                direction.Normalize();
-                b2Vec2 velocity = b2Vec2(PIXEL_TO_METERS(direction.getX() * movementSpeed), PIXEL_TO_METERS(direction.getY() * movementSpeed));
-                pbody->body->SetLinearVelocity(velocity);
-                Shoot();
-            }
-            else if (timeSinceLastAction >= 12 && timeSinceLastAction < 13) { // Quedate quieto
-                currentAnimation = &idle;
-                pbody->body->SetLinearVelocity(b2Vec2(0, 0));
-            }
-            else if (timeSinceLastAction >= 13 && timeSinceLastAction < 15) { // Muevete hasta (8980, 525)
-                currentAnimation = &move;
-                Vector2D direction = Vector2D(8980, 525) - GetPosition();
-                direction.Normalize();
-                b2Vec2 velocity = b2Vec2(PIXEL_TO_METERS(direction.getX() * movementSpeed), PIXEL_TO_METERS(direction.getY() * movementSpeed));
-                pbody->body->SetLinearVelocity(velocity);
-            }
-            else if (timeSinceLastAction >= 15 && timeSinceLastAction < 18) { // Quedate quieto
-                currentAnimation = &idle;
-                pbody->body->SetLinearVelocity(b2Vec2(0, 0));
-            }
-            else if (timeSinceLastAction >= 18) { // Reinicia el ciclo
-                bossAngryTimer.Start();
-            }
+    timeSinceLastAction = (health <= 25) ? bossAngryTimer.ReadSec() : bossTimer.ReadSec();
 
-        }
-        else { // Comportamiento normal cuando salud > 25
-            movementSpeed = normalSpeed;
-            timeSinceLastAction = bossTimer.ReadSec();
+    struct Action {
+        float start;
+        float end;
+        std::function<void(float)> action;
+    };
 
-            // Ajusta los intervalos para ralentizar el ciclo
-            if (timeSinceLastAction >= 0 && timeSinceLastAction < 2) { // Intervalo extendido
-                currentAnimation = &idle;
-                pbody->body->SetLinearVelocity(b2Vec2(0, 0));
-            }
-            else if (timeSinceLastAction >= 2 && timeSinceLastAction < 5) { // Movimiento 1
-                currentAnimation = &move;
-                Vector2D direction = Vector2D(9350, 200) - GetPosition();
-                direction.Normalize();
-                b2Vec2 velocity = b2Vec2(PIXEL_TO_METERS(direction.getX() * movementSpeed), PIXEL_TO_METERS(direction.getY() * movementSpeed));
-                pbody->body->SetLinearVelocity(velocity);
-            }
-            else if (timeSinceLastAction >= 5 && timeSinceLastAction < 6) { // Intervalo extendido
-                currentAnimation = &idle;
-                pbody->body->SetLinearVelocity(b2Vec2(0, 0));
-            }
-            else if (timeSinceLastAction >= 6 && timeSinceLastAction < 9) { // Movimiento 2 + disparo continuo
-                Vector2D direction = Vector2D(8630, 200) - GetPosition();
-                direction.Normalize();
-                b2Vec2 velocity = b2Vec2(PIXEL_TO_METERS(direction.getX() * movementSpeed), PIXEL_TO_METERS(direction.getY() * movementSpeed));
-                pbody->body->SetLinearVelocity(velocity);
+    // Define las acciones dependiendo del estado del jefe
+    Action actions[] = {
+        {0, 2, [this](float dt) { MoveToPoint(dt, {8630, 200}); }},
+        {2, 3, [this](float dt) { StayIdle(dt); }},
+        {3, 6, [this](float dt) { ShootMovingToPoint(dt, {9350, 200}); }},
+        {6, 9, [this](float dt) { ShootMovingToPoint(dt, {8630, 200}); }},
+        {9, 12, [this](float dt) { ShootMovingToPoint(dt, {9350, 200}); }},
+        {12, 13, [this](float dt) { StayIdle(dt); }},
+        {13, 15, [this](float dt) { MoveToPoint(dt, {8980, 525}); }},
+        {15, 18, [this](float dt) { StayIdle(dt); }},
+    };
 
-                Shoot();
-            }
-
-            else if (timeSinceLastAction >= 9 && timeSinceLastAction < 10) { // Pausa antes del siguiente movimiento
-                isShooting = false;
-                currentAnimation = &idle;
-                pbody->body->SetLinearVelocity(b2Vec2(0, 0));
-            }
-
-            else if (timeSinceLastAction >= 10 && timeSinceLastAction < 13) {
-                Vector2D direction = Vector2D(9350, 200) - GetPosition();
-                direction.Normalize();
-                b2Vec2 velocity = b2Vec2(PIXEL_TO_METERS(direction.getX() * movementSpeed), PIXEL_TO_METERS(direction.getY() * movementSpeed));
-                pbody->body->SetLinearVelocity(velocity);
-
-                Shoot();
-            }
-            else if (timeSinceLastAction >= 13 && timeSinceLastAction < 14) {
-                isShooting = false;
-                currentAnimation = &idle;
-                pbody->body->SetLinearVelocity(b2Vec2(0, 0));
-            }
-            else if (timeSinceLastAction >= 14 && timeSinceLastAction < 17) { // Movimiento 3
-                isShooting = false;
-                currentAnimation = &move;
-                Vector2D direction = Vector2D(8980, 525) - GetPosition();
-                direction.Normalize();
-                b2Vec2 velocity = b2Vec2(PIXEL_TO_METERS(direction.getX() * movementSpeed), PIXEL_TO_METERS(direction.getY() * movementSpeed));
-                pbody->body->SetLinearVelocity(velocity);
-            }
-            else if (timeSinceLastAction >= 17) { // Reinicia el ciclo
-                bossTimer.Start();
-            }
+    // Busca y ejecuta la acción correspondiente al tiempo transcurrido
+    for (const auto& action : actions) {
+        if (timeSinceLastAction >= action.start && timeSinceLastAction < action.end) {
+            action.action(dt);
+            return;
         }
     }
-    
 
+    // Reinicia el temporizador si se completan todas las acciones
+    if (health <= 25) {
+        bossAngryTimer.Start();
+    }
+    else {
+        bossTimer.Start();
+    }
+}
+
+
+void Boss::NormalBehavior(float dt) {
+    movementSpeed = normalSpeed;
+    timeSinceLastAction = bossTimer.ReadSec();
+
+    if (timeSinceLastAction < 2) {
+        StayIdle(dt);
+    }
+    else if (timeSinceLastAction < 5) {
+        MoveToPoint(dt, { 9350, 200 });
+    }
+    else if (timeSinceLastAction < 6) {
+        StayIdle(dt);
+    }
+    else if (timeSinceLastAction < 9) {
+        ShootMovingToPoint(dt, { 8630, 200 });
+    }
+    else if (timeSinceLastAction < 10) {
+        StayIdle(dt);
+    }
+    else if (timeSinceLastAction < 13) {
+        ShootMovingToPoint(dt, { 9350, 200 });
+    }
+    else if (timeSinceLastAction < 14) {
+        StayIdle(dt);
+    }
+    else if (timeSinceLastAction < 17) {
+        MoveToPoint(dt, { 8980, 525 });
+    }
+    else {
+        bossTimer.Start();
+    }
+}
+
+void Boss::MoveToPoint(float dt, const Vector2D& target) {
+    if (currentAnimation != &shootD) {
+        currentAnimation = &move;
+    }
     
+    Vector2D direction = target - GetPosition();
+    direction.Normalize();
+    b2Vec2 velocity(PIXEL_TO_METERS(direction.getX() * movementSpeed), PIXEL_TO_METERS(direction.getY() * movementSpeed));
+    pbody->body->SetLinearVelocity(velocity);
+}
+
+void Boss::StayIdle(float dt) {
+    currentAnimation = &idle;
+    pbody->body->SetLinearVelocity(b2Vec2(0, 0));
+}
+
+void Boss::ShootMovingToPoint(float dt, const Vector2D& target) {
+    // Establece la animación de disparo y mueve hacia el objetivo
+    currentAnimation = &shootD;
+    MoveToPoint(dt, target);
+
+    // Intentar disparar (solo si no está disparando actualmente)
+    Shoot();
+
+    // Restablecer el estado cuando la animación de disparo termina
+    if (currentAnimation == &shootD && currentAnimation->HasFinished()) {
+        isShooting = false;
+        shootD.Reset();
+    }
 }
 
 bool Boss::Update(float dt) {
     ResetPath();
     if (!isDying) {
-
         while (pathfinding->pathTiles.empty()) {
             pathfinding->PropagateAStar(SQUARED);
         }
-        if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F9) == KEY_DOWN) {
+        if (Engine::GetInstance().input->GetKey(SDL_SCANCODE_F9) == KEY_DOWN) {
             draw = !draw;
         }
         if (draw) {
             pathfinding->DrawPath();
         }
+
+        // Ejecuta el comportamiento de movimiento y disparo
         MoveTowardsTargetTile(dt);
 
-        // Actualiza flipSprite solo cuando cambie significativamente la dirección
+        // Actualiza el sprite solo si cambia la dirección
         float velocityX = pbody->body->GetLinearVelocity().x;
-        if (velocityX < -0.1f && !flipSprite) {
-            flipSprite = true;
-            hflip = SDL_FLIP_HORIZONTAL;
-        }
-        else if (velocityX > 0.1f && flipSprite) {
-            flipSprite = false;
-            hflip = SDL_FLIP_NONE;
+        if ((velocityX < -0.1f && !flipSprite) || (velocityX > 0.1f && flipSprite)) {
+            flipSprite = !flipSprite;
+            hflip = flipSprite ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
         }
     }
 
-    if (currentAnimation == &shootD && currentAnimation->HasFinished()) {
-        isShooting = false;
-        shootD.Reset();
+	if (health <= 25) {
+        movementSpeed = angrySpeed;
+	}
+    else
+    {
+		movementSpeed = normalSpeed;
     }
 
     if (isDying) {
@@ -227,14 +205,17 @@ bool Boss::Update(float dt) {
         pbody->body->SetLinearVelocity(b2Vec2(0, currentVelocity.y));
     }
 
-    // Actualiza posición y renderiza
+    UpdatePositionAndRender();
+    return true;
+}
+
+
+void Boss::UpdatePositionAndRender() {
     b2Transform pbodyPos = pbody->body->GetTransform();
     position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texH / 2);
     position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH / 2);
-    Engine::GetInstance().render.get()->DrawTexture(texture, (int)position.getX(), (int)position.getY(), &currentAnimation->GetCurrentFrame(), hflip);
+    Engine::GetInstance().render->DrawTexture(texture, position.getX(), position.getY(), &currentAnimation->GetCurrentFrame(), hflip);
     currentAnimation->Update();
-
-    return true;
 }
 
 bool Boss::CleanUp() {
@@ -265,11 +246,12 @@ Vector2D Boss::GetPosition() {
     return Vector2D(0, 0);
 }
 
-void Boss::Shoot()
-{
-    // Temporizador para disparos
-    if (!isShooting) { // Dispara cada 500 ms
+void Boss::Shoot() {
+    // Solo dispara si no está disparando actualmente
+    if (!isShooting) {
         currentAnimation = &shootD;
+
+        // Crear la bala
         Vector2D bulletPosition = GetPosition();
         bulletPosition.setY(bulletPosition.getY() + 28);
         Bullet* bullet = new Bullet(BulletType::BOSSV);
@@ -279,10 +261,15 @@ void Boss::Shoot()
         Engine::GetInstance().entityManager.get()->AddEntity(bullet);
         bullet->Start();
         bullet->SetPosition(bulletPosition);
+
+        // Reproducir efecto de sonido
         Engine::GetInstance().audio.get()->PlayFx(shootFxId);
+
+        // Marcar que el jefe está disparando
         isShooting = true;
     }
 }
+
 
 void Boss::ResetPath() {
     Vector2D pos = GetPosition();

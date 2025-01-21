@@ -150,6 +150,7 @@ bool EnemyFloor::Update(float dt) {
 bool EnemyFloor::CleanUp() {
     if (pbody != nullptr) {
         Engine::GetInstance().physics.get()->DeletePhysBody(pbody);
+        Engine::GetInstance().entityManager.get()->DestroyEntity(this);
     }
     return true;
 }

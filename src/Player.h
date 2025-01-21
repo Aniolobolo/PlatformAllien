@@ -85,6 +85,8 @@ public:
 	bool respawn = false;
 	bool reachedCheckpoint = false;
 
+	int coinCount = 0;
+
 	pugi::xml_node parameters;
 	Animation* currentAnimation = nullptr;
 	Animation idle;

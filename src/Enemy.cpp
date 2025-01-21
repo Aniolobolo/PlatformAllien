@@ -115,6 +115,7 @@ bool Enemy::Update(float dt) {
 bool Enemy::CleanUp() {
 	if (pbody != nullptr) {
 		Engine::GetInstance().physics.get()->DeletePhysBody(pbody);
+		Engine::GetInstance().entityManager.get()->DestroyEntity(this);
 	}
 	return true;
 }

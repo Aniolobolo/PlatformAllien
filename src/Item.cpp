@@ -33,9 +33,11 @@ bool Item::Start() {
     powerupSpeed.LoadAnimations(parameters.child("animations").child("powerupS"));
     health.LoadAnimations(parameters.child("animations").child("health"));
 
+    pickCoinFxId = Engine::GetInstance().audio.get()->LoadFx("Assets/Audio/Fx/coin.ogg");
+
     // L08 TODO 4: Add a physics to an item - initialize the physics body
     Engine::GetInstance().textures.get()->GetSize(texture, texW, texH);
-    pbody = Engine::GetInstance().physics.get()->CreateRectangleSensor((int)position.getX() + texH / 7, (int)position.getY() + texH / 4, 16, 16, bodyType::STATIC);
+    pbody = Engine::GetInstance().physics.get()->CreateRectangle((int)position.getX() + texH / 8, (int)position.getY() + texH / 4, 32, 32, bodyType::STATIC);
     pbody->listener = this;
 
     // L08 TODO 7: Assign collider type
@@ -87,6 +89,29 @@ void Item::OnCollision(PhysBody* physA, PhysBody* physB)
 	{
     case ColliderType::PLAYER:
         LOG("Item collided with player");
+
+		if (!isPicked) {
+			isPicked = true;
+			switch (itemType)
+			{
+			case ItemType::COLLECT:
+                Engine::GetInstance().audio.get()->PlayFx(pickCoinFxId);
+				Engine::GetInstance().scene.get()->player->coinCount++;
+				break;
+			case ItemType::HEALTH:
+                Engine::GetInstance().audio.get()->PlayFx(pickCoinFxId);
+				Engine::GetInstance().scene.get()->player->lives++;
+				break;
+			case ItemType::POWERUPJUMP:
+                Engine::GetInstance().audio.get()->PlayFx(pickCoinFxId);
+				Engine::GetInstance().scene.get()->player->powerUpJumpActive = true;
+				break;
+			case ItemType::POWERUPSPEED:
+				Engine::GetInstance().audio.get()->PlayFx(pickCoinFxId);
+				Engine::GetInstance().scene.get()->player->powerUpSpeedActive = true;
+				break;
+			}
+		}
         Engine::GetInstance().entityManager.get()->DestroyEntity(this);
 
         break;

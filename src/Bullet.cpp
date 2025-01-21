@@ -138,6 +138,7 @@ Vector2D Bullet::GetPosition() {
 void Bullet::OnCollision(PhysBody* physA, PhysBody* physB) {
     switch (physB->ctype) {
     case ColliderType::PLATFORM:
+	case ColliderType::WALL:
     case ColliderType::HAZARD:
     case ColliderType::CHECKPOINT:
     case ColliderType::ITEM:

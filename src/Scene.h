@@ -48,11 +48,6 @@ public:
 	// Draw boss health hud
 	void UpdateBossHUD();
 
-	void CreateEnemies();
-
-	void DeleteEnemies();
-
-
 	// Return the player position
 	Vector2D GetPlayerPosition();
 
@@ -61,6 +56,7 @@ public:
 	//L15 TODO 2: Implement the Save function
 	void SaveState();
 
+	void ActivateEnemies();
 
 public:
 	// Get tilePosDebug value
@@ -77,13 +73,13 @@ private:
 	bool areControlsVisible = false;
 	SDL_Texture* controls = nullptr;
 	SDL_Texture* gameOver = nullptr;
+	SDL_Texture* win = nullptr;
+	SDL_Texture* title = nullptr;
 	int bgMusic;
 
 	bool cameraNeedsUpdate = false;
 
 	bool hasPlacedWall = false;
-
-	SDL_Texture* wall;;
 
 	SDL_Texture* pHealth3;
 	SDL_Texture* pHealth2;
@@ -97,6 +93,7 @@ private:
 	SDL_Texture* bHealth0;
 
 	bool hasStarted = false;
+
 	int currentLevel = 1;
 	int maxLevel = 2;
 	bool arrivedToBoss = false;

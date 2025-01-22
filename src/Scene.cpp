@@ -90,9 +90,12 @@ bool Scene::Awake()
         enemyFList.push_back(enemyF);
     }
 
-    pugi::xml_node bossNode = configParameters.child("entities").child("bosses").child("boss");
-    boss = (Boss*)Engine::GetInstance().entityManager->CreateEntity(EntityType::BOSS);
-    boss->SetParameters(bossNode);
+    for (pugi::xml_node bossNode = configParameters.child("entities").child("bosses").child("boss"); bossNode; bossNode = bossNode.next_sibling("boss"))
+    {
+        Boss* boss = (Boss*)Engine::GetInstance().entityManager->CreateEntity(EntityType::BOSS);
+        boss->SetParameters(bossNode);
+        bossList.push_back(boss);
+    }
 
     return ret;
 }
@@ -104,8 +107,10 @@ bool Scene::Start()
     Engine::GetInstance().map->Load(configParameters.child("map").attribute("path").as_string(), configParameters.child("map").attribute("name").as_string());
     controls = Engine::GetInstance().textures->Load("Assets/Textures/Help.png");
 
-	wall = Engine::GetInstance().textures->Load("Assets/Textures/wall.png");
     gameOver = Engine::GetInstance().textures->Load("Assets/Textures/Screens/lossScreen.png");
+	win = Engine::GetInstance().textures->Load("Assets/Textures/Screens/winScreen.png");
+	title = Engine::GetInstance().textures->Load("Assets/Textures/Screens/titleScreen.png");
+
     pHealth3 = Engine::GetInstance().textures->Load("Assets/Textures/HUD/playerHealth3.png");
     pHealth2 = Engine::GetInstance().textures->Load("Assets/Textures/HUD/playerHealth2.png");
     pHealth1 = Engine::GetInstance().textures->Load("Assets/Textures/HUD/playerHealth1.png");
@@ -117,6 +122,8 @@ bool Scene::Start()
 	bHealth1 = Engine::GetInstance().textures->Load("Assets/Textures/HUD/bossHealth1.png");
 	bHealth0 = Engine::GetInstance().textures->Load("Assets/Textures/HUD/bossHealth0.png");
 
+    Engine::GetInstance().entityManager->active = false;
+    Engine::GetInstance().map->active = false;
 
     int musicVolume = 50;
     Mix_VolumeMusic(musicVolume);
@@ -133,184 +140,282 @@ bool Scene::PreUpdate()
 // Called each loop iteration
 bool Scene::Update(float dt)
 {
-    UpdatePlayerHUD();
-
-    // Comprobar si el jugador está en la zona del jefe
-    if (player->position.getX() <= 4500) {
-        if (currentLevel != 1) {
-            currentLevel = 1;
-            isPlayingMusic = false; // Reiniciar la bandera de música
-        }
-    }
-    else if (player->position.getX() >= 4500 && player->position.getX() <= 8435) {
-        if (currentLevel != 2) {
-            currentLevel = 2;
-            isPlayingMusic = false; // Reiniciar la bandera de música
-        }
-    }
-    else if (player->position.getX() >= 8435) {
-        UpdateBossHUD();
-        if (currentLevel != 3) {
-            currentLevel = 3;
-            isPlayingMusic = false; // Reiniciar la bandera de música
-        }
-		if (hasDeletedEnemies == false) {
-			DeleteEnemies();
-		}
-    }
-
-    // Control de la música según el nivel actual
-    if (currentLevel == 1 && !isPlayingMusic) {
-        bgMusic = Engine::GetInstance().audio->PlayMusic("Assets/Audio/Music/level1.ogg", 0);
-        isPlayingMusic = true;
-    }
-    else if (currentLevel == 2 && !isPlayingMusic) {
-        bgMusic = Engine::GetInstance().audio->PlayMusic("Assets/Audio/Music/level2.ogg", 0);
-        isPlayingMusic = true;
-    }
-    else if (currentLevel == 3 && !isPlayingMusic) {
-        bgMusic = Engine::GetInstance().audio->PlayMusic("Assets/Audio/Music/bossBattle.ogg", 0);
-        isPlayingMusic = true;
-    }
-
-
-    if (currentLevel == 1) {
-        if (player->position.getX() >= 525 && !player->isDead && player->position.getX() <= 3700) {
-            Engine::GetInstance().render.get()->camera.x = 500 - player->position.getX();
-        }
-    }
-	else if (currentLevel == 2 || currentLevel == 3) {
-		if (player->position.getX() >= 5025 && !player->isDead && player->position.getX() <= 8835) {
-			Engine::GetInstance().render.get()->camera.x = 500 - player->position.getX();
-		}
-	}
-    
-    if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F7) == KEY_DOWN) {
-		currentCheckpoint += 1;
-		if (currentCheckpoint > 3) {
-			currentCheckpoint = 1;
-		}
-        switch (currentCheckpoint)
-        {
-        case 1:
-            currentLevel = 1;
-            player->SetPosition(Vector2D(1440, 300));
-            player->isFalling = false;
-            break;
-        case 2:
-            currentLevel = 1;
-            
-            player->SetPosition(Vector2D(3640, 520));
-            player->isFalling = false;
-            break;
-        case 3:
-            currentLevel = 2;
-            player->SetPosition(Vector2D(7170, 550));
-            player->isFalling = false;
-            break;
-        default:
-            break;
-        }
-    }
-
-    if (cameraNeedsUpdate || player->hasToUpdateCam) {
-        player->hasToUpdateCam = false;
-        cameraNeedsUpdate = false;
-        if (player->reachedCheckpoint && currentLevel == 1) {
-            Engine::GetInstance().render.get()->camera.x = 2460;
-		}
-		else if (player->reachedCheckpoint && (currentLevel == 2 || currentLevel == 3)) {
-			Engine::GetInstance().render.get()->camera.x = 7970;
-		}
-
-        else {
-            Engine::GetInstance().render.get()->camera.x = 0;
-        }
-
-        LOG("Camera manually updated in Update to: %d", Engine::GetInstance().render.get()->camera.x);
-    }
-
-    if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F3) == KEY_DOWN) {
-
-        if (currentLevel = 1) {
-            Engine::GetInstance().render.get()->camera.x = 0;
-            player->isFalling = false;
-            player->SetPosition(Vector2D(175, 395));
-			isPlayingMusic = false;
-		}
-        else if (currentLevel = 2 || currentLevel == 3) {
-            Engine::GetInstance().render.get()->camera.x = 4500;
-            player->isFalling = false;
-            player->SetPosition(Vector2D(5080, 350));
-			isPlayingMusic = false;
-        }
-    }
-
-    if (player->hasLost) {
-        // Mostrar pantalla de Game Over
+	if (hasStarted == false)
+	{
+        Engine::GetInstance().entityManager->active = false;
+        Engine::GetInstance().map->active = false;
         int width, height;
-        Engine::GetInstance().textures->GetSize(gameOver, width, height);
+        Engine::GetInstance().textures->GetSize(title, width, height);
         int windowWidth, windowHeight;
         Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
 
         SDL_Rect dstRect = { 0, 0, width, height };
-        SDL_RenderCopy(Engine::GetInstance().render->renderer, gameOver, nullptr, &dstRect);
-
-        if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_R) == KEY_DOWN) {
-            player->hasLost = false;
-            player->isFalling = true;
-            player->lives = 3;
+        SDL_RenderCopy(Engine::GetInstance().render->renderer, title, nullptr, &dstRect);
+        if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_T) == KEY_DOWN) {
+            Engine::GetInstance().entityManager->active = true;
+            Engine::GetInstance().map->active = true;
+			hasStarted = true;
+            currentLevel = 1;
+            Engine::GetInstance().render.get()->camera.x = 0;
+			cameraNeedsUpdate = true;
+            player->isFalling = false;
+            player->SetPosition(Vector2D(175, 390));
+            isPlayingMusic = false;
         }
-    }
+        else if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_Y) == KEY_DOWN) {
+            Engine::GetInstance().entityManager->active = true;
+            Engine::GetInstance().map->active = true;
+            hasStarted = true;
+            LoadState();
+        }
+	}
+    
+    if (hasStarted) {
+        UpdatePlayerHUD();
 
-	// Mostrar el menú de controles
-    if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_H) == KEY_DOWN) {
-        areControlsVisible = !areControlsVisible;
-    }
-
-    if (areControlsVisible && controls != nullptr) {
-        int width, height;
-        Engine::GetInstance().textures->GetSize(controls, width, height);
-        int windowWidth, windowHeight;
-        Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
-
-        SDL_Rect dstRect = { windowWidth - width - 10, 10, width, height };
-
-        SDL_RenderCopy(Engine::GetInstance().render->renderer, controls, nullptr, &dstRect);
-    }
-
-    	// Comprobar si el jugador ha llegado al checkpoint
-    if (!hasReachedCheckpoint) {
-        for (Checkpoint* checkpoint : checkPList) {
-            if (checkpoint->hasSounded) {
-                SaveState();
-                hasReachedCheckpoint = true;
-                break; // Salir del bucle una vez que se ha alcanzado un punto de control
+        // Comprobar si el jugador está en la zona del jefe
+        if (player->position.getX() <= 4500) {
+            if (currentLevel != 1) {
+                currentLevel = 1;
+                isPlayingMusic = false; // Reiniciar la bandera de música
             }
         }
-    }
-    if (!hasReachedFlagpole) {
-        for (Flag* flag : flagList) {
-            if (flag->hasWon) {
-                Engine::GetInstance().render.get()->camera.x = 4500;
-                player->SetPosition(Vector2D(5025, 300));
-                SaveState();
-                hasReachedFlagpole = true;
-				hasReachedCheckpoint = false;
-                break; // Salir del bucle una vez que se ha alcanzado un punto de control
+        else if (player->position.getX() >= 4500 && player->position.getX() <= 8435) {
+            if (currentLevel != 2) {
+                currentLevel = 2;
+                isPlayingMusic = false; // Reiniciar la bandera de música
             }
         }
-    }
+        else if (player->position.getX() >= 8435) {
+            UpdateBossHUD();
+            if (currentLevel != 3) {
+                currentLevel = 3;
+                isPlayingMusic = false; // Reiniciar la bandera de música
+            }
+        }
 
-    if (hasReachedFlagpole) {
+        // Control de la música según el nivel actual
+        if (currentLevel == 1 && !isPlayingMusic) {
+            bgMusic = Engine::GetInstance().audio->PlayMusic("Assets/Audio/Music/level1.ogg", 0);
+            isPlayingMusic = true;
+        }
+        else if (currentLevel == 2 && !isPlayingMusic) {
+            bgMusic = Engine::GetInstance().audio->PlayMusic("Assets/Audio/Music/level2.ogg", 0);
+            isPlayingMusic = true;
+        }
+        else if (currentLevel == 3 && !isPlayingMusic) {
+            bgMusic = Engine::GetInstance().audio->PlayMusic("Assets/Audio/Music/bossBattle.ogg", 0);
+            isPlayingMusic = true;
+        }
+
+
         if (currentLevel == 1) {
-			currentLevel = 2;
-			isPlayingMusic = false;
-			hasReachedFlagpole = false;
+            if (player->position.getX() >= 525 && !player->isDead && player->position.getX() <= 3700) {
+                Engine::GetInstance().render.get()->camera.x = 500 - player->position.getX();
+            }
         }
+        else if (currentLevel == 2 || currentLevel == 3) {
+            if (player->position.getX() >= 5025 && !player->isDead && player->position.getX() <= 8835) {
+                Engine::GetInstance().render.get()->camera.x = 500 - player->position.getX();
+            }
+        }
+
+        if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F7) == KEY_DOWN) {
+            currentCheckpoint += 1;
+            if (currentCheckpoint > 3) {
+                currentCheckpoint = 1;
+            }
+            switch (currentCheckpoint)
+            {
+            case 1:
+                currentLevel = 1;
+                player->SetPosition(Vector2D(1440, 300));
+                player->isFalling = false;
+                break;
+            case 2:
+                currentLevel = 1;
+
+                player->SetPosition(Vector2D(3640, 520));
+                player->isFalling = false;
+                break;
+            case 3:
+                currentLevel = 2;
+                player->SetPosition(Vector2D(7170, 550));
+                player->isFalling = false;
+                break;
+            default:
+                break;
+            }
+        }
+
+        if (cameraNeedsUpdate || player->hasToUpdateCam) {
+            player->hasToUpdateCam = false;
+            cameraNeedsUpdate = false;
+            if (player->reachedCheckpoint && currentLevel == 1) {
+                Engine::GetInstance().render.get()->camera.x = 2460;
+            }
+            else if (player->reachedCheckpoint && (currentLevel == 2 || currentLevel == 3)) {
+                Engine::GetInstance().render.get()->camera.x = 7970;
+            }
+
+            else {
+                Engine::GetInstance().render.get()->camera.x = 0;
+            }
+
+            LOG("Camera manually updated in Update to: %d", Engine::GetInstance().render.get()->camera.x);
+        }
+
+        if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F3) == KEY_DOWN) {
+
+            if (currentLevel = 1) {
+                Engine::GetInstance().render.get()->camera.x = 0;
+                player->isFalling = false;
+                player->SetPosition(Vector2D(175, 395));
+                isPlayingMusic = false;
+            }
+            else if (currentLevel = 2 || currentLevel == 3) {
+                Engine::GetInstance().render.get()->camera.x = 4500;
+                player->isFalling = false;
+                player->SetPosition(Vector2D(5080, 350));
+                isPlayingMusic = false;
+            }
+        }
+
+        if (player->hasLost) {
+            // Mostrar pantalla de Game Over
+            for (Enemy* enemy : enemyList) {
+                if (!enemy->isDying) {
+                    enemy->SetActive(false);
+                }
+                break;
+
+            }
+
+            for (EnemyFloor* enemyF : enemyFList) {
+                if (!enemyF->isDying) {
+                    enemyF->SetActive(false);
+                }
+                break;
+            }
+
+            for (Boss* bossC : bossList) {
+                if (!bossC->isDying) {
+                    bossC->SetActive(false);
+                }
+                break;
+            }
+            Engine::GetInstance().entityManager->active = false;
+            Engine::GetInstance().map->active = false;
+            int width, height;
+            Engine::GetInstance().textures->GetSize(gameOver, width, height);
+            int windowWidth, windowHeight;
+            Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
+
+            SDL_Rect dstRect = { 0, 0, width, height };
+            SDL_RenderCopy(Engine::GetInstance().render->renderer, gameOver, nullptr, &dstRect);
+
+            if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_R) == KEY_DOWN) {
+                player->hasLost = false;
+                player->isFalling = true;
+                player->lives = 3;
+
+                ActivateEnemies();
+                Engine::GetInstance().entityManager->active = true;
+                Engine::GetInstance().map->active = true;
+            }
+        }
+
+        // Mostrar el menú de controles
+        if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_H) == KEY_DOWN) {
+            areControlsVisible = !areControlsVisible;
+        }
+
+        if (areControlsVisible && controls != nullptr) {
+            int width, height;
+            Engine::GetInstance().textures->GetSize(controls, width, height);
+            int windowWidth, windowHeight;
+            Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
+
+            SDL_Rect dstRect = { windowWidth - width - 10, 10, width, height };
+
+            SDL_RenderCopy(Engine::GetInstance().render->renderer, controls, nullptr, &dstRect);
+        }
+
+        // Comprobar si el jugador ha llegado al checkpoint
+        if (!hasReachedCheckpoint) {
+            for (Checkpoint* checkpoint : checkPList) {
+                if (checkpoint->hasSounded) {
+                    SaveState();
+                    hasReachedCheckpoint = true;
+                    break; // Salir del bucle una vez que se ha alcanzado un punto de control
+                }
+            }
+        }
+        if (!hasReachedFlagpole) {
+            for (Flag* flag : flagList) {
+                if (flag->hasWon) {
+                    Engine::GetInstance().render.get()->camera.x = 4500;
+                    player->SetPosition(Vector2D(5025, 300));
+                    SaveState();
+                    hasReachedFlagpole = true;
+                    hasReachedCheckpoint = false;
+                    break; // Salir del bucle una vez que se ha alcanzado un punto de control
+                }
+            }
+        }
+
+        if (hasReachedFlagpole) {
+            if (currentLevel == 1) {
+                currentLevel = 2;
+                isPlayingMusic = false;
+                hasReachedFlagpole = false;
+            }
+        }
+
+        ActivateEnemies();
+    }
+   
+    return true;
+}
+
+void Scene::ActivateEnemies() {
+    // Actualizar el estado de los enemigos según el nivel actual
+    for (Enemy* enemy : enemyList) {
+        if (!enemy->isDying) {
+            if (enemy->GetLevel() != currentLevel) {
+                enemy->SetActive(false);
+            }
+            else {
+                enemy->SetActive(true);
+            }
+        }
+        break;
+
     }
 
-    return true;
+    for (EnemyFloor* enemyF : enemyFList) {
+        if (!enemyF->isDying) {
+            if (enemyF->GetLevel() != currentLevel) {
+                enemyF->SetActive(false);
+            }
+            else {
+                enemyF->SetActive(true);
+            }
+        }
+        break;
+    }
+
+    for (Boss* bossC : bossList) {
+        if (!bossC->isDying) {
+            if (bossC->GetLevel() != currentLevel) {
+                bossC->SetActive(false);
+            }
+            else {
+                bossC->SetActive(true);
+            }
+        }
+        break;
+    }
 }
 
 // Called each loop iteration
@@ -329,28 +434,6 @@ bool Scene::PostUpdate()
     return ret;
 }
 
-void Scene::DeleteEnemies()
-{
-    if (!enemyList.empty()) {
-        for (auto it = enemyList.begin(); it != enemyList.end(); ++it) {
-            if (*it != nullptr) {
-                (*it)->CleanUp();
-                delete* it; // Asegúrate de liberar la memoria
-            }
-        }
-        enemyList.clear();
-    }
-    if (!enemyFList.empty()) {
-        for (auto it = enemyFList.begin(); it != enemyFList.end(); ++it) {
-            if (*it != nullptr) {
-                (*it)->CleanUp();
-                delete* it; // Asegúrate de liberar la memoria
-            }
-        }
-        enemyFList.clear();
-    }
-    hasDeletedEnemies = true;
-}
 
 // Called before quitting
 bool Scene::CleanUp()
@@ -411,46 +494,51 @@ void Scene::UpdatePlayerHUD()
 
 void Scene::UpdateBossHUD()
 {
-	if (boss->health <= 50 && boss->health > 40) {
-		int width, height;
-		Engine::GetInstance().textures->GetSize(bHealth4, width, height);
-		int windowWidth, windowHeight;
-		Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
-		SDL_Rect dstRect = { windowWidth / 3 + width / 4, 10, width, height };
-		SDL_RenderCopy(Engine::GetInstance().render->renderer, bHealth4, nullptr, &dstRect);
-	}
-    else if (boss->health <= 40 && boss->health > 25) {
-		int width, height;
-		Engine::GetInstance().textures->GetSize(bHealth3, width, height);
-		int windowWidth, windowHeight;
-		Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
-		SDL_Rect dstRect = { windowWidth/ 3 + width / 4 , 10, width, height };
-		SDL_RenderCopy(Engine::GetInstance().render->renderer, bHealth3, nullptr, &dstRect);
-	}
-	else if (boss->health <= 25 && boss->health > 10) {
-		int width, height;
-		Engine::GetInstance().textures->GetSize(bHealth2, width, height);
-		int windowWidth, windowHeight;
-		Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
-		SDL_Rect dstRect = { windowWidth / 3 + width / 4, 10, width, height };
-		SDL_RenderCopy(Engine::GetInstance().render->renderer, bHealth2, nullptr, &dstRect);
-	}
-    else if (boss->health <= 10 && boss->health > 0 ) {
-		int width, height;
-		Engine::GetInstance().textures->GetSize(bHealth1, width, height);
-		int windowWidth, windowHeight;
-		Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
-		SDL_Rect dstRect = { windowWidth / 3 + width / 4, 10, width, height };
-		SDL_RenderCopy(Engine::GetInstance().render->renderer, bHealth1, nullptr, &dstRect);
-	}
-	else if (boss->health == 0) {
-		int width, height;
-		Engine::GetInstance().textures->GetSize(bHealth0, width, height);
-		int windowWidth, windowHeight;
-		Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
-		SDL_Rect dstRect = { windowWidth / 3 + width / 4, 10, width, height };
-		SDL_RenderCopy(Engine::GetInstance().render->renderer, bHealth0, nullptr, &dstRect);
-	}
+    for (Boss* bossC : bossList) {
+        if (!bossC->isDying) {
+            if (bossC->health <= 50 && bossC->health > 40) {
+                int width, height;
+                Engine::GetInstance().textures->GetSize(bHealth4, width, height);
+                int windowWidth, windowHeight;
+                Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
+                SDL_Rect dstRect = { windowWidth / 3 + width / 4, 10, width, height };
+                SDL_RenderCopy(Engine::GetInstance().render->renderer, bHealth4, nullptr, &dstRect);
+            }
+            else if (bossC->health <= 40 && bossC->health > 25) {
+                int width, height;
+                Engine::GetInstance().textures->GetSize(bHealth3, width, height);
+                int windowWidth, windowHeight;
+                Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
+                SDL_Rect dstRect = { windowWidth / 3 + width / 4 , 10, width, height };
+                SDL_RenderCopy(Engine::GetInstance().render->renderer, bHealth3, nullptr, &dstRect);
+            }
+            else if (bossC->health <= 25 && bossC->health > 10) {
+                int width, height;
+                Engine::GetInstance().textures->GetSize(bHealth2, width, height);
+                int windowWidth, windowHeight;
+                Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
+                SDL_Rect dstRect = { windowWidth / 3 + width / 4, 10, width, height };
+                SDL_RenderCopy(Engine::GetInstance().render->renderer, bHealth2, nullptr, &dstRect);
+            }
+            else if (bossC->health <= 10 && bossC->health > 0) {
+                int width, height;
+                Engine::GetInstance().textures->GetSize(bHealth1, width, height);
+                int windowWidth, windowHeight;
+                Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
+                SDL_Rect dstRect = { windowWidth / 3 + width / 4, 10, width, height };
+                SDL_RenderCopy(Engine::GetInstance().render->renderer, bHealth1, nullptr, &dstRect);
+            }
+            else if (bossC->health == 0) {
+                int width, height;
+                Engine::GetInstance().textures->GetSize(bHealth0, width, height);
+                int windowWidth, windowHeight;
+                Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
+                SDL_Rect dstRect = { windowWidth / 3 + width / 4, 10, width, height };
+                SDL_RenderCopy(Engine::GetInstance().render->renderer, bHealth0, nullptr, &dstRect);
+            }
+        }
+        break;
+    }
 }
 
 Vector2D Scene::GetPlayerPosition()

@@ -30,6 +30,11 @@ public:
 
 	Vector2D GetPosition();
 
+	int GetLevel();
+	void SetActive(bool var);
+
+	bool isDying = false;
+
 	void ResetPath();
 	void OnCollision(PhysBody* physA, PhysBody* physB);
 	void OnCollisionEnd(PhysBody* physA, PhysBody* physB);
@@ -55,7 +60,7 @@ private:
 	bool flipSprite = false;
 	bool draw = false;
 
-	bool isDying = false;
+	int level = 0;
 
 	int deathSfx;
 

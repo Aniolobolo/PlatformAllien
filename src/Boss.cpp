@@ -111,10 +111,10 @@ void Boss::NormalBehavior(float dt) {
     if (timeSinceLastAction < 2) {
         StayIdle(dt);
     }
-    else if (timeSinceLastAction < 5) {
+    else if (timeSinceLastAction < 6) {
         MoveToPoint(dt, { 9350, 200 });
     }
-    else if (timeSinceLastAction < 6) {
+    else if (timeSinceLastAction < 7) {
         StayIdle(dt);
     }
     else if (timeSinceLastAction < 9) {
@@ -130,7 +130,7 @@ void Boss::NormalBehavior(float dt) {
         StayIdle(dt);
     }
     else if (timeSinceLastAction < 17) {
-        MoveToPoint(dt, { 8980, 525 });
+        MoveToPoint(dt, { 8980, 530 });
     }
     else {
         bossTimer.Start();
@@ -169,44 +169,46 @@ void Boss::ShootMovingToPoint(float dt, const Vector2D& target) {
 }
 
 bool Boss::Update(float dt) {
-    ResetPath();
-    if (!isDying) {
-        while (pathfinding->pathTiles.empty()) {
-            pathfinding->PropagateAStar(SQUARED);
-        }
-        if (Engine::GetInstance().input->GetKey(SDL_SCANCODE_F9) == KEY_DOWN) {
-            draw = !draw;
-        }
-        if (draw) {
-            pathfinding->DrawPath();
+    if (active) {
+        ResetPath();
+        if (!isDying) {
+            while (pathfinding->pathTiles.empty()) {
+                pathfinding->PropagateAStar(SQUARED);
+            }
+            if (Engine::GetInstance().input->GetKey(SDL_SCANCODE_F9) == KEY_DOWN) {
+                draw = !draw;
+            }
+            if (draw) {
+                pathfinding->DrawPath();
+            }
+
+            // Ejecuta el comportamiento de movimiento y disparo
+            MoveTowardsTargetTile(dt);
+
+            // Actualiza el sprite solo si cambia la dirección
+            float velocityX = pbody->body->GetLinearVelocity().x;
+            if ((velocityX < -0.1f && !flipSprite) || (velocityX > 0.1f && flipSprite)) {
+                flipSprite = !flipSprite;
+                hflip = flipSprite ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+            }
         }
 
-        // Ejecuta el comportamiento de movimiento y disparo
-        MoveTowardsTargetTile(dt);
-
-        // Actualiza el sprite solo si cambia la dirección
-        float velocityX = pbody->body->GetLinearVelocity().x;
-        if ((velocityX < -0.1f && !flipSprite) || (velocityX > 0.1f && flipSprite)) {
-            flipSprite = !flipSprite;
-            hflip = flipSprite ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+        if (health <= 25) {
+            movementSpeed = angrySpeed;
         }
+        else
+        {
+            movementSpeed = normalSpeed;
+        }
+
+        if (isDying) {
+            b2Vec2 currentVelocity = pbody->body->GetLinearVelocity();
+            pbody->body->SetLinearVelocity(b2Vec2(0, currentVelocity.y));
+        }
+
+        UpdatePositionAndRender();
+        return true;
     }
-
-	if (health <= 25) {
-        movementSpeed = angrySpeed;
-	}
-    else
-    {
-		movementSpeed = normalSpeed;
-    }
-
-    if (isDying) {
-        b2Vec2 currentVelocity = pbody->body->GetLinearVelocity();
-        pbody->body->SetLinearVelocity(b2Vec2(0, currentVelocity.y));
-    }
-
-    UpdatePositionAndRender();
-    return true;
 }
 
 
@@ -299,7 +301,7 @@ void Boss::OnCollision(PhysBody* physA, PhysBody* physB) {
 			LOG("FINISHED - DELETE BOSS");
 			Engine::GetInstance().audio.get()->PlayFx(deathSfx);
 			Engine::GetInstance().entityManager.get()->DestroyEntity(this);
-			isDying = false;
+			isDying = true;
 			die.Reset();
 		}
 		Engine::GetInstance().entityManager.get()->DestroyEntity(physB->listener);
@@ -319,6 +321,22 @@ void Boss::OnCollisionEnd(PhysBody* physA, PhysBody* physB) {
 		LOG("Collision hazard");
 		break;
 	}
+}
+
+int Boss::GetLevel()
+{
+    if (!isDying) {
+        level = parameters.attribute("level").as_int();
+    }
+    else {
+        level = 0;
+    }
+    return level;
+}
+
+void Boss::SetActive(bool var)
+{
+	active = var;
 }
 
 void Boss::SetAlive() {

@@ -30,6 +30,11 @@ public:
 
 	Vector2D GetPosition();
 
+	int GetLevel();
+	void SetActive(bool var);
+
+	bool isDying = false;
+
 	void ResetPath();
 	void OnCollision(PhysBody* physA, PhysBody* physB);
 	void OnCollisionEnd(PhysBody* physA, PhysBody* physB);
@@ -52,6 +57,8 @@ private:
 
 	float jumpForce = 3.0f;
 
+	int level = 0;
+
 	bool isalive = true;
 	bool flipSprite = false;
 	bool draw = false;
@@ -59,7 +66,6 @@ private:
 	bool isJumping = false;
 	bool isFalling;
 
-	bool isDying = false;
 
 	int deathSfx;
 

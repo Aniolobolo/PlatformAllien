@@ -154,30 +154,14 @@ void EntityManager::AddEntity(Entity* entity)
 
 bool EntityManager::Update(float dt)
 {
-    ZoneScoped;
     bool ret = true;
-    std::vector<Entity*> entitiesToRemove;
-
-    for (auto& entity : entities)
-    {
-        if (entity == nullptr) continue;
-
-        // Update only active entities
-        if (entity->active)
+    //Iterates over the entities and calls Update
+    if (active) {
+        for (const auto entity : entities)
         {
+            if (entity->active == false) continue;
             ret = entity->Update(dt);
         }
-        else
-        {
-            entitiesToRemove.push_back(entity);
-        }
     }
-
-    // Remove entities after the iteration
-    for (auto& entity : entitiesToRemove)
-    {
-        DestroyEntity(entity);
-    }
-
     return ret;
 }

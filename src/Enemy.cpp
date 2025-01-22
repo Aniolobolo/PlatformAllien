@@ -75,49 +75,67 @@ void Enemy::MoveTowardsTargetTile(float dt) {
 }
 
 bool Enemy::Update(float dt) {
-	ZoneScoped;
-	ResetPath();
-	if (!isDying) {
-		while (pathfinding->pathTiles.empty()) {
-			pathfinding->PropagateAStar(SQUARED);
+	if (active) {
+		ZoneScoped;
+		ResetPath();
+		if (!isDying) {
+			while (pathfinding->pathTiles.empty()) {
+				pathfinding->PropagateAStar(SQUARED);
+			}
+			if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F9) == KEY_DOWN) {
+				draw = !draw;
+			}
+			if (draw) {
+				pathfinding->DrawPath();
+			}
+			MoveTowardsTargetTile(dt);
+			float velocityX = pbody->body->GetLinearVelocity().x;
+			if (velocityX < -0.1f) {
+				flipSprite = true;
+				hflip = SDL_FLIP_HORIZONTAL;
+			}
+			else if (velocityX > 0.1f) {
+				flipSprite = false;
+				hflip = SDL_FLIP_NONE;
+			}
 		}
-		if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F9) == KEY_DOWN) {
-			draw = !draw;
-		}
-		if (draw) {
-			pathfinding->DrawPath();
-		}
-		MoveTowardsTargetTile(dt);
-		float velocityX = pbody->body->GetLinearVelocity().x;
-		if (velocityX < -0.1f) {
-			flipSprite = true;
-			hflip = SDL_FLIP_HORIZONTAL;
-		}
-		else if (velocityX > 0.1f) {
-			flipSprite = false;
-			hflip = SDL_FLIP_NONE;
-		}
-	}
 
-	if (isDying) {
-		b2Vec2 currentVelocity = pbody->body->GetLinearVelocity();
-		pbody->body->SetLinearVelocity(b2Vec2(0, currentVelocity.y));
-	}
+		if (isDying) {
+			b2Vec2 currentVelocity = pbody->body->GetLinearVelocity();
+			pbody->body->SetLinearVelocity(b2Vec2(0, currentVelocity.y));
+		}
 
-	b2Transform pbodyPos = pbody->body->GetTransform();
-	position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texH / 2);
-	position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH / 2);
-	Engine::GetInstance().render.get()->DrawTexture(texture, (int)position.getX(), (int)position.getY(), &currentAnimation->GetCurrentFrame(), hflip);
-	currentAnimation->Update();
-	return true;
+		b2Transform pbodyPos = pbody->body->GetTransform();
+		position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texH / 2);
+		position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH / 2);
+		Engine::GetInstance().render.get()->DrawTexture(texture, (int)position.getX(), (int)position.getY(), &currentAnimation->GetCurrentFrame(), hflip);
+		currentAnimation->Update();
+		return true;
+	}
 }
 
 bool Enemy::CleanUp() {
 	if (pbody != nullptr) {
 		Engine::GetInstance().physics.get()->DeletePhysBody(pbody);
-		Engine::GetInstance().entityManager.get()->DestroyEntity(this);
 	}
 	return true;
+}
+
+int Enemy::GetLevel()
+{
+	if (!isDying) {
+		level = parameters.attribute("level").as_int();
+	}
+	else {
+		level = 0;
+	}
+	
+	return level;
+}
+
+void Enemy::SetActive(bool var)
+{
+	active = var;
 }
 
 void Enemy::CreateEnemyAtPosition(Vector2D position) {
@@ -169,7 +187,7 @@ void Enemy::OnCollision(PhysBody* physA, PhysBody* physB) {
 			LOG("FINISHED - DELETE ENEMY");
 			Engine::GetInstance().audio.get()->PlayFx(deathSfx);
 			Engine::GetInstance().entityManager.get()->DestroyEntity(this);
-			isDying = false;
+			isDying = true;
 			die.Reset();
 		}
 		Engine::GetInstance().entityManager.get()->DestroyEntity(physB->listener);
@@ -179,7 +197,7 @@ void Enemy::OnCollision(PhysBody* physA, PhysBody* physB) {
 		break;
 	case ColliderType::VOID:
 		LOG("Collided with hazard - DESTROY");
-		SetDead();
+		isDying = true;
 		Engine::GetInstance().audio.get()->PlayFx(deathSfx);
 		Engine::GetInstance().entityManager.get()->DestroyEntity(this);
 		break;
@@ -194,12 +212,3 @@ void Enemy::OnCollisionEnd(PhysBody* physA, PhysBody* physB) {
 	}
 }
 
-void Enemy::SetAlive() {
-	isalive = true;
-	parameters.attribute("alive").set_value(true);
-}
-
-void Enemy::SetDead() {
-	isalive = false;
-	parameters.attribute("alive").set_value(false);
-}

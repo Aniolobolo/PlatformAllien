@@ -98,61 +98,78 @@ void EnemyFloor::SetDead() {
 }
 
 bool EnemyFloor::Update(float dt) {
-    ResetPath();
-    if (!isDying) {
-        while (pathfinding->pathTiles.empty()) {
-            pathfinding->PropagateAStar(SQUARED);
-        }
-        if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F9) == KEY_DOWN) {
-            draw = !draw;
-        }
-        if (draw) {
-            pathfinding->DrawPath();
-        }
-        if (isOnFloor && !isFalling) {
-            MoveTowardsTargetTile(dt);
-        }
-        float velocityX = pbody->body->GetLinearVelocity().x;
-        float velocityY = pbody->body->GetLinearVelocity().y;
-        if (velocityX < -0.1f) {
-            flipSprite = true;
-            hflip = SDL_FLIP_HORIZONTAL;
-        }
-        else if (velocityX > 0.1f) {
-            flipSprite = false;
-            hflip = SDL_FLIP_NONE;
-        }
-        if (velocityY > 0.1f) {
-            isFalling = true;
-        }
-        else {
-            isFalling = false;
+    if (active) {
+        ResetPath();
+        if (!isDying) {
+            while (pathfinding->pathTiles.empty()) {
+                pathfinding->PropagateAStar(SQUARED);
+            }
+            if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_F9) == KEY_DOWN) {
+                draw = !draw;
+            }
+            if (draw) {
+                pathfinding->DrawPath();
+            }
+            if (isOnFloor && !isFalling) {
+                MoveTowardsTargetTile(dt);
+            }
+            float velocityX = pbody->body->GetLinearVelocity().x;
+            float velocityY = pbody->body->GetLinearVelocity().y;
+            if (velocityX < -0.1f) {
+                flipSprite = true;
+                hflip = SDL_FLIP_HORIZONTAL;
+            }
+            else if (velocityX > 0.1f) {
+                flipSprite = false;
+                hflip = SDL_FLIP_NONE;
+            }
+            if (velocityY > 0.1f) {
+                isFalling = true;
+            }
+            else {
+                isFalling = false;
+            }
+
+            if (velocityX == 0.0f) {
+                currentAnimation = &idle;
+            }
         }
 
-        if (velocityX == 0.0f) {
-            currentAnimation = &idle;
+        if (isDying) {
+            b2Vec2 currentVelocity = pbody->body->GetLinearVelocity();
+            pbody->body->SetLinearVelocity(b2Vec2(0, currentVelocity.y));
         }
+
+        b2Transform pbodyPos = pbody->body->GetTransform();
+        position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texW / 2);
+        position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH / 2);
+        Engine::GetInstance().render.get()->DrawTexture(texture, (int)position.getX(), (int)position.getY(), &currentAnimation->GetCurrentFrame(), hflip);
+        currentAnimation->Update();
+        return true;
     }
-
-    if (isDying) {
-        b2Vec2 currentVelocity = pbody->body->GetLinearVelocity();
-        pbody->body->SetLinearVelocity(b2Vec2(0, currentVelocity.y));
-    }
-
-    b2Transform pbodyPos = pbody->body->GetTransform();
-    position.setX(METERS_TO_PIXELS(pbodyPos.p.x) - texW / 2);
-    position.setY(METERS_TO_PIXELS(pbodyPos.p.y) - texH / 2);
-    Engine::GetInstance().render.get()->DrawTexture(texture, (int)position.getX(), (int)position.getY(), &currentAnimation->GetCurrentFrame(), hflip);
-    currentAnimation->Update();
-    return true;
 }
 
 bool EnemyFloor::CleanUp() {
     if (pbody != nullptr) {
         Engine::GetInstance().physics.get()->DeletePhysBody(pbody);
-        Engine::GetInstance().entityManager.get()->DestroyEntity(this);
     }
     return true;
+}
+
+int EnemyFloor::GetLevel()
+{
+    if (!isDying) {
+        level = parameters.attribute("level").as_int();
+    }
+    else {
+        level = 0;
+    }
+    return level;
+}
+
+void EnemyFloor::SetActive(bool var)
+{
+    active = var;
 }
 
 void EnemyFloor::CreateEnemyAtPosition(Vector2D position) {
@@ -203,7 +220,7 @@ void EnemyFloor::OnCollision(PhysBody* physA, PhysBody* physB) {
             LOG("FINISHED - DELETE ENEMY");
             Engine::GetInstance().audio.get()->PlayFx(deathSfx);
             Engine::GetInstance().entityManager.get()->DestroyEntity(this);
-            isDying = false;
+            isDying = true;
             die.Reset();
         }
         Engine::GetInstance().entityManager.get()->DestroyEntity(physB->listener);
@@ -213,7 +230,7 @@ void EnemyFloor::OnCollision(PhysBody* physA, PhysBody* physB) {
         break;
     case ColliderType::VOID:
         LOG("Collided with hazard - DESTROY");
-        isalive = false;
+		isDying = true;
         Engine::GetInstance().audio.get()->PlayFx(deathSfx);
         Engine::GetInstance().entityManager.get()->DestroyEntity(this);
         break;

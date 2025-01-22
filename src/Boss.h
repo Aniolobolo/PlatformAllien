@@ -31,10 +31,15 @@ public:
     void OnCollision(PhysBody* physA, PhysBody* physB);
     void OnCollisionEnd(PhysBody* physA, PhysBody* physB);
 
+    int GetLevel();
+	void SetActive(bool var);
+
     bool isAlive() const;
     void SetAlive();
     void SetDead();
     int health = 50;
+
+    bool isDying = false;
 
 private:
     void NormalBehavior(float dt);
@@ -45,6 +50,7 @@ private:
     void Shoot();
 
     // Variables
+    int level = 0;
 
     int maxHealth = 50;
 
@@ -54,7 +60,7 @@ private:
 
     bool isShooting = false;
     bool isalive = true;
-    bool isDying = false;
+
     bool flipSprite = false;
     bool draw = false;
 

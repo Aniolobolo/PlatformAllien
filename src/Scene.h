@@ -74,6 +74,7 @@ private:
 	SDL_Texture* controls = nullptr;
 	SDL_Texture* gameOver = nullptr;
 	SDL_Texture* win = nullptr;
+	SDL_Texture* credits = nullptr;
 	SDL_Texture* title = nullptr;
 	int bgMusic;
 
@@ -92,6 +93,7 @@ private:
 	SDL_Texture* bHealth1;
 	SDL_Texture* bHealth0;
 
+	bool hasShownCredits = false;
 	bool hasStarted = false;
 
 	int currentLevel = 1;

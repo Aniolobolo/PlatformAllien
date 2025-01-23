@@ -110,6 +110,7 @@ bool Scene::Start()
     gameOver = Engine::GetInstance().textures->Load("Assets/Textures/Screens/lossScreen.png");
 	win = Engine::GetInstance().textures->Load("Assets/Textures/Screens/winScreen.png");
 	title = Engine::GetInstance().textures->Load("Assets/Textures/Screens/titleScreen.png");
+    credits = Engine::GetInstance().textures->Load("Assets/Textures/Screens/credits.png");
 
     pHealth3 = Engine::GetInstance().textures->Load("Assets/Textures/HUD/playerHealth3.png");
     pHealth2 = Engine::GetInstance().textures->Load("Assets/Textures/HUD/playerHealth2.png");
@@ -144,29 +145,47 @@ bool Scene::Update(float dt)
 	{
         Engine::GetInstance().entityManager->active = false;
         Engine::GetInstance().map->active = false;
-        int width, height;
-        Engine::GetInstance().textures->GetSize(title, width, height);
-        int windowWidth, windowHeight;
-        Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
+        if (!hasShownCredits) {
+            int width, height;
+            Engine::GetInstance().textures->GetSize(credits, width, height);
+            int windowWidth, windowHeight;
+            Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
+            SDL_Rect dstRect = { 0, 0, width, height };
+            SDL_RenderCopy(Engine::GetInstance().render->renderer, credits, nullptr, &dstRect);
 
-        SDL_Rect dstRect = { 0, 0, width, height };
-        SDL_RenderCopy(Engine::GetInstance().render->renderer, title, nullptr, &dstRect);
-        if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_T) == KEY_DOWN) {
-            Engine::GetInstance().entityManager->active = true;
-            Engine::GetInstance().map->active = true;
-			hasStarted = true;
-            currentLevel = 1;
-            Engine::GetInstance().render.get()->camera.x = 0;
-			cameraNeedsUpdate = true;
-            player->isFalling = false;
-            player->SetPosition(Vector2D(175, 390));
-            isPlayingMusic = false;
+            if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_SPACE) == KEY_DOWN) {
+                hasShownCredits = true;
+            }
+            if (!isPlayingMusic) {
+                bgMusic = Engine::GetInstance().audio->PlayMusic("Assets/Audio/Music/menu.ogg", 0);
+                isPlayingMusic = true;
+            }
         }
-        else if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_Y) == KEY_DOWN) {
-            Engine::GetInstance().entityManager->active = true;
-            Engine::GetInstance().map->active = true;
-            hasStarted = true;
-            LoadState();
+        else {
+            int width, height;
+            Engine::GetInstance().textures->GetSize(title, width, height);
+            int windowWidth, windowHeight;
+            Engine::GetInstance().window->GetWindowSize(windowWidth, windowHeight);
+            SDL_Rect dstRect = { 0, 0, width, height };
+            SDL_RenderCopy(Engine::GetInstance().render->renderer, title, nullptr, &dstRect);
+
+            if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_T) == KEY_DOWN) {
+                Engine::GetInstance().entityManager->active = true;
+                Engine::GetInstance().map->active = true;
+                hasStarted = true;
+                currentLevel = 1;
+                Engine::GetInstance().render.get()->camera.x = 0;
+                cameraNeedsUpdate = true;
+                player->isFalling = false;
+                player->SetPosition(Vector2D(175, 390));
+                isPlayingMusic = false;
+            }
+            else if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_Y) == KEY_DOWN) {
+                Engine::GetInstance().entityManager->active = true;
+                Engine::GetInstance().map->active = true;
+                hasStarted = true;
+                LoadState();
+            }
         }
 	}
     

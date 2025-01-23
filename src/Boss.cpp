@@ -209,9 +209,6 @@ bool Boss::Update(float dt) {
         UpdatePositionAndRender();
         return true;
     }
-    else {
-        pbody->body->SetLinearVelocity(b2Vec2(0, 0));
-    }
 }
 
 

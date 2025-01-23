@@ -52,7 +52,7 @@ bool Bullet::Start() {
     travel.LoadAnimations(parameters.child("animations").child("travel"));
     currentAnimation = &travel;
 
-    pbody = Engine::GetInstance().physics.get()->CreateRectangle((int)position.getX(), (int)position.getY(), 22, 10, bodyType::DYNAMIC);
+    pbody = Engine::GetInstance().physics.get()->CreateRectangle(static_cast<int>(position.getX()), static_cast<int>(position.getY()), 22, 10, bodyType::DYNAMIC);
     if (pbody == nullptr) {
         LOG("Error: PhysBody creation failed!");
         return false;
@@ -142,9 +142,6 @@ void Bullet::OnCollision(PhysBody* physA, PhysBody* physB) {
     case ColliderType::HAZARD:
     case ColliderType::CHECKPOINT:
     case ColliderType::ITEM:
-	case ColliderType::HEALTH:
-	case ColliderType::POWERUPJUMP:
-	case ColliderType::POWERUPSPEED:
         LOG("Collided - DESTROY");
         isAlive = false;
         Engine::GetInstance().entityManager.get()->DestroyEntity(this);

@@ -37,7 +37,7 @@ public:
     bool isAlive() const;
     void SetAlive();
     void SetDead();
-    int health = 1;
+    int health = 50;
 
     bool isDying = false;
 

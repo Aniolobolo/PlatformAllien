@@ -347,6 +347,7 @@ bool Scene::Update(float dt)
                     hasReachedCheckpoint = true;
                     break; // Salir del bucle una vez que se ha alcanzado un punto de control
                 }
+                
             }
         }
         if (!hasReachedFlagpole) {
@@ -451,7 +452,8 @@ bool Scene::CleanUp()
 
 void Scene::UpdatePlayerHUD()
 {
-    if (player->lives == 3) {
+    if (player->lives >= 3) {
+        player->lives = 3;
         int width, height;
         Engine::GetInstance().textures->GetSize(pHealth3, width, height);
         int windowWidth, windowHeight;

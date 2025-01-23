@@ -142,6 +142,9 @@ void Bullet::OnCollision(PhysBody* physA, PhysBody* physB) {
     case ColliderType::HAZARD:
     case ColliderType::CHECKPOINT:
     case ColliderType::ITEM:
+    case ColliderType::HEALTH:
+    case ColliderType::POWERUPSPEED:
+    case ColliderType::POWERUPJUMP:
         LOG("Collided - DESTROY");
         isAlive = false;
         Engine::GetInstance().entityManager.get()->DestroyEntity(this);

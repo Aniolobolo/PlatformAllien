@@ -316,10 +316,8 @@ bool Scene::Update(float dt)
 
             if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_R) == KEY_DOWN) {
                 player->hasLost = false;
-                player->isFalling = true;
                 player->lives = 3;
-
-                ActivateEnemies();
+                LoadState();
                 Engine::GetInstance().entityManager->active = true;
                 Engine::GetInstance().map->active = true;
             }
@@ -357,8 +355,9 @@ bool Scene::Update(float dt)
                     Engine::GetInstance().render.get()->camera.x = 4500;
                     player->SetPosition(Vector2D(5025, 300));
                     SaveState();
-                    hasReachedFlagpole = true;
                     hasReachedCheckpoint = false;
+                    hasReachedFlagpole = true;
+                    
                     break; // Salir del bucle una vez que se ha alcanzado un punto de control
                 }
             }
@@ -378,6 +377,8 @@ bool Scene::Update(float dt)
     return true;
 }
 
+
+// Esto antes iba para todos los enemigos pero por algun motivo ahora solo funciona para el boss
 void Scene::ActivateEnemies() {
     // Actualizar el estado de los enemigos según el nivel actual
     for (Enemy* enemy : enemyList) {

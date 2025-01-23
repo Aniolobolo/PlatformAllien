@@ -121,13 +121,14 @@ bool Enemy::CleanUp() {
 	return true;
 }
 
+// Aqui A VECES falla, es lo que no entendemos
 int Enemy::GetLevel()
 {
 	if (!isDying) {
 		level = parameters.attribute("level").as_int();
 	}
 	else {
-		level = 0;
+		level = -1;
 	}
 	
 	return level;

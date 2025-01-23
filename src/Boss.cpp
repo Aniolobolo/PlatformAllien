@@ -9,6 +9,7 @@
 #include "Physics.h"
 #include "Map.h"
 #include "EntityManager.h"
+#include "tracy/Tracy.hpp"
 
 Boss::Boss() : Entity(EntityType::BOSS), pathfinding(nullptr), pbody(nullptr) {}
 
@@ -170,6 +171,7 @@ void Boss::ShootMovingToPoint(float dt, const Vector2D& target) {
 
 bool Boss::Update(float dt) {
     if (active) {
+        ZoneScoped;
         ResetPath();
         if (!isDying) {
             while (pathfinding->pathTiles.empty()) {
@@ -323,13 +325,14 @@ void Boss::OnCollisionEnd(PhysBody* physA, PhysBody* physB) {
 	}
 }
 
+// Aqui A VECES falla, es lo que no entendemos
 int Boss::GetLevel()
 {
     if (!isDying) {
         level = parameters.attribute("level").as_int();
     }
     else {
-        level = 0;
+        level = -1;
     }
     return level;
 }

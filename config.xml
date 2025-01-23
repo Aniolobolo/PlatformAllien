@@ -17,7 +17,7 @@
 	<scene>
 		<map path="Assets/Maps/" name="NivelFinal.tmx" />
 		<entities>
-			<player x="200" y="300" w="64" h="64" texture="Assets/Textures/player/PlayerAnimations.png">
+			<player x="200" y="365" w="64" h="64" texture="Assets/Textures/player/PlayerAnimations.png">
 				<animations>
 					<idle loop="true" speed="0.3">
 						<frame x="0" y="0" w="64" h="64" />
@@ -517,6 +517,54 @@
 							</coin>
 						</animations>
 					</coin>
+					<coin name="coin4" x="5630-16" y="450-16" w="32" h="32" texture="Assets/Textures/props/items.png" gravity="false">
+						<animations>
+							<coin loop="true" speed="0.2">
+								<frame x="0" y="0" w="32" h="32" />
+								<frame x="32" y="0" w="32" h="32" />
+								<frame x="64" y="0" w="32" h="32" />
+								<frame x="96" y="0" w="32" h="32" />
+								<frame x="128" y="0" w="32" h="32" />
+								<frame x="160" y="0" w="32" h="32" />
+							</coin>
+						</animations>
+					</coin>
+					<coin name="coin5" x="5890-16" y="140-16" w="32" h="32" texture="Assets/Textures/props/items.png" gravity="false">
+						<animations>
+							<coin loop="true" speed="0.2">
+								<frame x="0" y="0" w="32" h="32" />
+								<frame x="32" y="0" w="32" h="32" />
+								<frame x="64" y="0" w="32" h="32" />
+								<frame x="96" y="0" w="32" h="32" />
+								<frame x="128" y="0" w="32" h="32" />
+								<frame x="160" y="0" w="32" h="32" />
+							</coin>
+						</animations>
+					</coin>
+					<coin name="coin6" x="6090-16" y="140-16" w="32" h="32" texture="Assets/Textures/props/items.png" gravity="false">
+						<animations>
+							<coin loop="true" speed="0.2">
+								<frame x="0" y="0" w="32" h="32" />
+								<frame x="32" y="0" w="32" h="32" />
+								<frame x="64" y="0" w="32" h="32" />
+								<frame x="96" y="0" w="32" h="32" />
+								<frame x="128" y="0" w="32" h="32" />
+								<frame x="160" y="0" w="32" h="32" />
+							</coin>
+						</animations>
+					</coin>
+					<coin name="coin7" x="7391-16" y="270-16" w="32" h="32" texture="Assets/Textures/props/items.png" gravity="false">
+						<animations>
+							<coin loop="true" speed="0.2">
+								<frame x="0" y="0" w="32" h="32" />
+								<frame x="32" y="0" w="32" h="32" />
+								<frame x="64" y="0" w="32" h="32" />
+								<frame x="96" y="0" w="32" h="32" />
+								<frame x="128" y="0" w="32" h="32" />
+								<frame x="160" y="0" w="32" h="32" />
+							</coin>
+						</animations>
+					</coin>
 				</pickups>
 				<healths>
 					<health name="health1" x="930-16" y="150-16" w="32" h="32" texture="Assets/Textures/props/items.png" gravity="false">
@@ -532,6 +580,18 @@
 						</animations>
 					</health>
 					<health name="health2" x="3224-16" y="280-32" w="32" h="32" texture="Assets/Textures/props/items.png" gravity="false">
+						<animations>
+							<health loop="true" speed="0.2">
+								<frame x="0" y="96" w="32" h="32" />
+								<frame x="32" y="96" w="32" h="32" />
+								<frame x="64" y="96" w="32" h="32" />
+								<frame x="96" y="96" w="32" h="32" />
+								<frame x="128" y="96" w="32" h="32" />
+								<frame x="160" y="96" w="32" h="32" />
+							</health>
+						</animations>
+					</health>
+					<health name="health3" x="6618-16" y="280-32" w="32" h="32" texture="Assets/Textures/props/items.png" gravity="false">
 						<animations>
 							<health loop="true" speed="0.2">
 								<frame x="0" y="96" w="32" h="32" />
@@ -569,6 +629,18 @@
 							</powerupJ>
 						</animations>
 					</powerupjump>
+					<powerupjump name="powerupJ3" x="7040-16" y="200-16" w="32" h="32" texture="Assets/Textures/props/items.png" gravity="false">
+						<animations>
+							<powerupJ loop="true" speed="0.2">
+								<frame x="0" y="32" w="32" h="32" />
+								<frame x="32" y="32" w="32" h="32" />
+								<frame x="64" y="32" w="32" h="32" />
+								<frame x="96" y="32" w="32" h="32" />
+								<frame x="128" y="32" w="32" h="32" />
+								<frame x="160" y="32" w="32" h="32" />
+							</powerupJ>
+						</animations>
+					</powerupjump>
 					<powerupspeed name="powerupS1" x="3811-16" y="500-16" w="32" h="32" texture="Assets/Textures/props/items.png" gravity="false">
 						<animations>
 							<powerupS loop="true" speed="0.2">
@@ -582,6 +654,18 @@
 						</animations>
 					</powerupspeed>
 					<powerupspeed name="powerupS2" x="2700-16" y="360-16" w="32" h="32" texture="Assets/Textures/props/items.png" gravity="false">
+						<animations>
+							<powerupS loop="true" speed="0.2">
+								<frame x="0" y="64" w="32" h="32" />
+								<frame x="32" y="64" w="32" h="32" />
+								<frame x="64" y="64" w="32" h="32" />
+								<frame x="96" y="64" w="32" h="32" />
+								<frame x="128" y="64" w="32" h="32" />
+								<frame x="160" y="64" w="32" h="32" />
+							</powerupS>
+						</animations>
+					</powerupspeed>
+					<powerupspeed name="powerupS3" x="6200-16" y="600-16" w="32" h="32" texture="Assets/Textures/props/items.png" gravity="false">
 						<animations>
 							<powerupS loop="true" speed="0.2">
 								<frame x="0" y="64" w="32" h="32" />

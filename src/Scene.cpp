@@ -354,7 +354,7 @@ bool Scene::Update(float dt)
             for (Flag* flag : flagList) {
                 if (flag->hasWon) {
                     Engine::GetInstance().render.get()->camera.x = 4500;
-                    player->SetPosition(Vector2D(5025, 300));
+                    player->SetPosition(Vector2D(5025, 370));
                     SaveState();
                     hasReachedCheckpoint = false;
                     hasReachedFlagpole = true;
@@ -382,7 +382,9 @@ bool Scene::Update(float dt)
 // Esto antes iba para todos los enemigos pero por algun motivo ahora solo funciona para el boss
 void Scene::ActivateEnemies() {
     // Actualizar el estado de los enemigos según el nivel actual
-    for (Enemy* enemy : enemyList) {
+    
+    // Esto aqui funciona a veces y otras veces se crashea el juego... no entendemos por qué
+    /*for (Enemy* enemy : enemyList) {
         if (!enemy->isDying) {
             if (enemy->GetLevel() != currentLevel) {
                 enemy->SetActive(false);
@@ -390,6 +392,9 @@ void Scene::ActivateEnemies() {
             else {
                 enemy->SetActive(true);
             }
+        }
+        else {
+            break;
         }
         break;
 
@@ -404,8 +409,11 @@ void Scene::ActivateEnemies() {
                 enemyF->SetActive(true);
             }
         }
+        else {
+            break;
+        }
         break;
-    }
+    }*/
 
     for (Boss* bossC : bossList) {
         if (!bossC->isDying) {
@@ -415,6 +423,9 @@ void Scene::ActivateEnemies() {
             else {
                 bossC->SetActive(true);
             }
+        }
+        else {
+            break;
         }
         break;
     }

@@ -10,6 +10,7 @@
 #include "Map.h"
 #include "EntityManager.h"
 #include "Player.h"
+#include "tracy/Tracy.hpp"
 
 EnemyFloor::EnemyFloor() : Entity(EntityType::ENEMY), pathfinding(nullptr), pbody(nullptr), isFalling(false) {}
 
@@ -99,6 +100,7 @@ void EnemyFloor::SetDead() {
 
 bool EnemyFloor::Update(float dt) {
     if (active) {
+        ZoneScoped;
         ResetPath();
         if (!isDying) {
             while (pathfinding->pathTiles.empty()) {
@@ -156,13 +158,15 @@ bool EnemyFloor::CleanUp() {
     return true;
 }
 
+// Aqui A VECES falla, es lo que no entendemos
 int EnemyFloor::GetLevel()
 {
     if (!isDying) {
         level = parameters.attribute("level").as_int();
     }
-    else {
-        level = 0;
+    else
+    {
+        return -1;
     }
     return level;
 }

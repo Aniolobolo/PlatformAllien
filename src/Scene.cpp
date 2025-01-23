@@ -183,6 +183,7 @@ bool Scene::Update(float dt)
             else if (Engine::GetInstance().input.get()->GetKey(SDL_SCANCODE_Y) == KEY_DOWN) {
                 Engine::GetInstance().entityManager->active = true;
                 Engine::GetInstance().map->active = true;
+                isPlayingMusic = false;
                 hasStarted = true;
                 LoadState();
             }
@@ -250,17 +251,20 @@ bool Scene::Update(float dt)
                 currentLevel = 1;
                 player->SetPosition(Vector2D(1440, 300));
                 player->isFalling = false;
+                isPlayingMusic = false;
                 break;
             case 2:
                 currentLevel = 1;
 
                 player->SetPosition(Vector2D(3640, 520));
                 player->isFalling = false;
+                isPlayingMusic = false;
                 break;
             case 3:
                 currentLevel = 2;
                 player->SetPosition(Vector2D(7170, 550));
                 player->isFalling = false;
+                isPlayingMusic = false;
                 break;
             default:
                 break;
@@ -596,7 +600,7 @@ void Scene::LoadState() {
     if (playerNode) {
         Vector2D playerPos(
             static_cast<float>(playerNode.attribute("x").as_int() - 32),
-            static_cast<float>(playerNode.attribute("y").as_int() - 32)
+            static_cast<float>(playerNode.attribute("y").as_int() - 40)
         );
         cameraNeedsUpdate = true;
 

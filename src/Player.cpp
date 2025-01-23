@@ -361,7 +361,7 @@ void Player::OnCollision(PhysBody* physA, PhysBody* physB) {
 		}
 		break;
 	case ColliderType::ENEMYBULLET:
-		Engine::GetInstance().physics.get()->DeletePhysBody(physB);
+		Engine::GetInstance().entityManager.get()->DestroyEntity(physB->listener);
 		if (!isDead && !godMode) {
 			isDead = true;
 			currentAnimation = &die;

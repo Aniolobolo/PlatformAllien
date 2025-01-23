@@ -112,6 +112,9 @@ bool Enemy::Update(float dt) {
 		currentAnimation->Update();
 		return true;
 	}
+	else {
+		pbody->body->SetLinearVelocity(b2Vec2(0, 0));
+	}
 }
 
 bool Enemy::CleanUp() {

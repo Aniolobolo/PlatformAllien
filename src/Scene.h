@@ -51,6 +51,9 @@ public:
 	// Return the player position
 	Vector2D GetPlayerPosition();
 
+	void ResetGame();
+	void RegenerateEnemies();
+
 	//L15 TODO 1: Implement the Load function
 	void LoadState();
 	//L15 TODO 2: Implement the Save function
@@ -75,11 +78,11 @@ private:
 	SDL_Texture* gameOver = nullptr;
 	SDL_Texture* win = nullptr;
 	SDL_Texture* title = nullptr;
+	SDL_Texture* credits = nullptr;
+	SDL_Texture* pause = nullptr;
 	int bgMusic;
 
 	bool cameraNeedsUpdate = false;
-
-	bool hasPlacedWall = false;
 
 	SDL_Texture* pHealth3;
 	SDL_Texture* pHealth2;
@@ -93,6 +96,8 @@ private:
 	SDL_Texture* bHealth0;
 
 	bool hasStarted = false;
+	bool hasPaused = false;
+	bool drawWin = false;
 
 	int currentLevel = 1;
 	int maxLevel = 2;

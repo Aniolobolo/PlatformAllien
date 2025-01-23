@@ -147,6 +147,9 @@ bool EnemyFloor::Update(float dt) {
         currentAnimation->Update();
         return true;
     }
+    else {
+        pbody->body->SetLinearVelocity(b2Vec2(0, 0));
+    }
 }
 
 bool EnemyFloor::CleanUp() {

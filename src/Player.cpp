@@ -429,7 +429,6 @@ void Player::OnCollisionEnd(PhysBody* physA, PhysBody* physB)
 	case ColliderType::VOID:
 		break;
 	case ColliderType::CHECKPOINT:
-		isFalling = true;
 		break;
 	case ColliderType::UNKNOWN:
 		LOG("End Collision UNKNOWN");
